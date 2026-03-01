@@ -101,7 +101,9 @@ textarea { resize:vertical; min-height:58px; }
 .btn-outline   { background:transparent; border:1.5px solid var(--rose); color:var(--rose); }
 .btn-outline:hover { background:var(--rose); color:#fff; }
 .btn-ghost     { background:transparent; border:1.5px solid var(--warm); color:var(--soft); }
-.btn-danger    { background:#f44336; color:#fff; }
+.btn-ghost:hover { background:var(--warm); }
+.btn-danger    { background:#d94f4f; color:#fff; }
+.btn-danger:hover { background:#b83c3c; transform:translateY(-1px); }
 .btn-sm        { display:inline-block; width:auto; padding:.35rem .85rem; font-size:.78rem; margin-top:0; }
 .btn-row       { display:flex; gap:7px; margin-top:.7rem; }
 .btn-row .btn  { margin-top:0; }
@@ -146,7 +148,7 @@ table.wtbl thead tr { background:var(--warm); }
 table.wtbl th { padding:.55rem .5rem; text-align:left; font-size:.74rem; color:var(--burg); font-weight:700; white-space:nowrap; }
 table.wtbl td { padding:.6rem .5rem; border-bottom:1px solid var(--warm); color:var(--ink2); vertical-align:middle; }
 table.wtbl tr:last-child td { border-bottom:none; }
-table.wtbl tr.selected td { background:#fff5f5; }
+table.wtbl tr.selected td { background:#fff0f0; }
 table.wtbl tr:hover td { background:var(--cream); }
 .td-check { width:28px; text-align:center; }
 .td-check input[type=checkbox] { width:15px; height:15px; accent-color:var(--burg); cursor:pointer; }
@@ -158,7 +160,7 @@ table.wtbl tr:hover td { background:var(--cream); }
 .snd-btn:active { transform:scale(.95); }
 .tbl-footer { display:flex; justify-content:space-between; align-items:center; margin-top:.6rem; flex-wrap:wrap; gap:6px; }
 .tbl-count { font-size:.8rem; color:var(--soft); }
-.tbl-actions { display:flex; gap:6px; }
+.tbl-actions { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
 
 /* ── WRONG CARD ── */
 .wrong-card { background:var(--cream); border:1.5px solid var(--warm); border-radius:13px; padding:.9rem 1rem; margin-bottom:.7rem; display:flex; justify-content:space-between; align-items:center; gap:.7rem; }
@@ -179,6 +181,7 @@ table.wtbl tr:hover td { background:var(--cream); }
 @keyframes slideUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .modal-title { font-family:'DM Serif Display',serif; font-size:1.15rem; color:var(--burg); margin-bottom:.4rem; }
 .modal-desc  { font-size:.88rem; color:var(--soft); margin-bottom:1.4rem; white-space:pre-line; }
+.modal-title-danger { font-family:'DM Serif Display',serif; font-size:1.15rem; color:#d94f4f; margin-bottom:.4rem; }
 
 /* ── OCR ── */
 input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach); border-radius:9px; background:var(--cream); font-size:.83rem; color:var(--soft); cursor:pointer; }
@@ -210,7 +213,7 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
 .mode-card .mc-lbl  { font-size:.78rem; color:var(--soft); font-weight:700; }
 .mode-card.active .mc-lbl { color:var(--burg); }
 
-/* checklist for word select */
+/* ── CHECKLIST ── */
 .checklist-wrap { border:1.5px solid var(--warm); border-radius:10px; overflow:hidden; max-height:260px; overflow-y:auto; margin-bottom:.8rem; }
 .check-item { display:flex; align-items:center; gap:10px; padding:.6rem .9rem; border-bottom:1px solid var(--warm); cursor:pointer; transition:background .15s; }
 .check-item:last-child { border-bottom:none; }
@@ -223,7 +226,7 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
 </head>
 <body>
 
-<!-- BG DECO PAWS -->
+<!-- BG DECO -->
 <div class="bg-deco" id="bgDeco"></div>
 
 <!-- HEADER -->
@@ -238,7 +241,7 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
   <div class="header-line"></div>
 </div>
 
-<!-- TABS: 입력 > 단어장 > 퀴즈 > 오답노트 -->
+<!-- TABS -->
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('input',this)">✏️ 입력</button>
   <button class="tab-btn"        onclick="switchTab('list',this)">📋 단어장</button>
@@ -248,12 +251,9 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
 
 <div class="container">
 
-<!-- ══════════════════════════════════
-     TAB 1: 입력
-══════════════════════════════════════ -->
+<!-- ══ TAB 1: 입력 ══ -->
 <div id="panel-input" class="panel active">
   <p class="sec-title">📝 새 단어 추가</p>
-
   <div class="radio-group">
     <input type="radio" name="imode" id="mManual" value="manual" checked>
     <label for="mManual">✍️ 직접 입력</label>
@@ -289,14 +289,11 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     TAB 2: 단어장
-══════════════════════════════════════ -->
+<!-- ══ TAB 2: 단어장 ══ -->
 <div id="panel-list" class="panel">
-  <p class="sec-title" id="listTitle">
+  <p class="sec-title">
     📋 전체 단어장 <small id="listCountBadge">( 0개 단어 )</small>
   </p>
-
   <div class="filter-row">
     <select id="listDate" onchange="renderList()">
       <option value="all">📅 전체 날짜</option>
@@ -311,19 +308,17 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
   <div class="tbl-footer" id="listFooter" style="display:none">
     <span class="tbl-count" id="listSelInfo"></span>
     <div class="tbl-actions">
-      <button class="btn btn-outline btn-sm" onclick="selectAllList()">전체선택</button>
+      <button class="btn btn-ghost btn-sm"   onclick="selectAllList()">전체선택</button>
       <button class="btn btn-ghost btn-sm"   onclick="clearSelList()">선택해제</button>
+      <button class="btn btn-danger btn-sm"  onclick="openDeleteModal()">🗑️ 선택삭제</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     TAB 3: 퀴즈
-══════════════════════════════════════ -->
+<!-- ══ TAB 3: 퀴즈 ══ -->
 <div id="panel-quiz" class="panel">
   <p class="sec-title">🎯 플래시카드 퀴즈</p>
 
-  <!-- SETUP -->
   <div id="quizSetup">
     <p style="font-size:.82rem;color:var(--soft);margin-bottom:.7rem">퀴즈 방식을 선택해주세요 🐶</p>
     <div class="mode-cards">
@@ -376,14 +371,12 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
       <span id="progPct">0%</span>
     </div>
     <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-
     <div class="flashcard">
       <p class="card-lbl">ENGLISH WORD</p>
       <p class="card-word" id="cWord">—</p>
       <p class="card-mean" id="cMean" style="display:none"></p>
       <p class="card-src"  id="cSrc"></p>
     </div>
-
     <div id="btnShow" style="margin-top:.8rem">
       <button class="btn btn-secondary" onclick="showMean()">👁️ 뜻 보기</button>
     </div>
@@ -407,9 +400,7 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     TAB 4: 오답노트
-══════════════════════════════════════ -->
+<!-- ══ TAB 4: 오답노트 ══ -->
 <div id="panel-wrong" class="panel">
   <p class="sec-title">❌ 오답노트</p>
   <div id="wrongSummary"></div>
@@ -421,7 +412,7 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- MODAL -->
+<!-- MODAL: 암기완료 -->
 <div class="modal-ov" id="modal">
   <div class="modal-box">
     <p class="modal-title">암기 완료! 🎊</p>
@@ -433,53 +424,60 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
   </div>
 </div>
 
-<!-- ══════════════════════════════════  JS  ════════════════════════════════ -->
+<!-- MODAL: 단어 삭제 -->
+<div class="modal-ov" id="modalDelete">
+  <div class="modal-box">
+    <p class="modal-title-danger">🗑️ 단어 삭제</p>
+    <p class="modal-desc" id="modalDeleteDesc"></p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+      <button class="btn btn-danger"    onclick="confirmDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ JS ══════════════ -->
 <script>
-// ── ⚠️ SUPABASE CONFIG — 아래 두 줄을 본인 값으로 교체하세요 ─────────────
+// ⚠️ 아래 두 줄을 본인 Supabase 값으로 교체하세요
 const SUPABASE_URL = 'https://onqjuvisyobcmmnkpchn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_3UHtrpmbSdpdPCnyLe5KBw_8bwuHpv7';
-// ──────────────────────────────────────────────────────────────────────────
 
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ── STATE ─────────────────────────────────────────────────────────────────
+// ── STATE ──────────────────────────────────────────────────────────────────
 let allWords   = [];
 let wrongWords = [];
 let quizWords  = [];
-let quizIdx    = 0, quizOk = 0, quizBad = 0;
+let quizIdx = 0, quizOk = 0, quizBad = 0;
 let quizCount  = 5;
-let quizMode   = 'date';   // 'date' | 'pick'
+let quizMode   = 'date';
 let masterId   = null, masterWord = '';
 let listSelected = new Set();
 
-// ── BG PAWS ───────────────────────────────────────────────────────────────
+// ── BG PAWS ────────────────────────────────────────────────────────────────
 (function() {
   const icons = ['🐾','🐶','🐱','🐰','🐻','🌸','🍀','⭐','🐾'];
   const deco = document.getElementById('bgDeco');
-  for (let i=0;i<18;i++) {
+  for (let i = 0; i < 18; i++) {
     const el = document.createElement('div');
     el.className = 'bg-paw';
     el.textContent = icons[i % icons.length];
-    el.style.left   = (Math.random()*95) + '%';
-    el.style.top    = (Math.random()*95) + '%';
-    el.style.setProperty('--r', (Math.random()*60-30)+'deg');
-    el.style.setProperty('--d', (Math.random()*8)+'s');
-    el.style.fontSize = (.9 + Math.random()*.9) + 'rem';
+    el.style.left = (Math.random() * 95) + '%';
+    el.style.top  = (Math.random() * 95) + '%';
+    el.style.setProperty('--r', (Math.random() * 60 - 30) + 'deg');
+    el.style.setProperty('--d', (Math.random() * 8) + 's');
+    el.style.fontSize = (.9 + Math.random() * .9) + 'rem';
     deco.appendChild(el);
   }
 })();
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   await loadVocab();
   await loadWrong();
-  buildPickList();
 });
 
 async function loadVocab() {
-  const { data, error } = await db.from('vocab').select('*').order('created_at',{ascending:false});
-  if (error) { showToast('DB 오류: '+error.message); return; }
+  const { data, error } = await db.from('vocab').select('*').order('created_at', { ascending: false });
+  if (error) { showToast('DB 오류: ' + error.message); return; }
   allWords = data || [];
   populateFilters();
   renderList();
@@ -487,28 +485,26 @@ async function loadVocab() {
 }
 
 async function loadWrong() {
-  const { data } = await db.from('wrong_answers').select('*').order('wrong_count',{ascending:false});
+  const { data } = await db.from('wrong_answers').select('*').order('wrong_count', { ascending: false });
   wrongWords = data || [];
   renderWrong();
 }
 
-// ── FILTERS ───────────────────────────────────────────────────────────────
+// ── FILTERS ────────────────────────────────────────────────────────────────
 function populateFilters() {
-  const dates   = [...new Set(allWords.map(w=>w.created_at?.slice(0,10)))].filter(Boolean).sort().reverse();
-  const sources = [...new Set(allWords.map(w=>w.source).filter(Boolean))].sort();
+  const dates   = [...new Set(allWords.map(w => w.created_at?.slice(0,10)))].filter(Boolean).sort().reverse();
+  const sources = [...new Set(allWords.map(w => w.source).filter(Boolean))].sort();
 
-  const dateSels   = ['listDate','qDate'];
-  const sourceSels = ['listSrc','qSrc'];
-
-  dateSels.forEach(id => {
+  ['listDate','qDate'].forEach(id => {
     const sel = document.getElementById(id), cur = sel.value;
     sel.innerHTML = '<option value="all">📅 전체 날짜</option>';
-    dates.forEach(d => { const o=new Option(d,d); if(d===cur)o.selected=true; sel.add(o); });
+    dates.forEach(d => { const o = new Option(d, d); if (d === cur) o.selected = true; sel.add(o); });
   });
-  sourceSels.forEach(id => {
+
+  ['listSrc','qSrc'].forEach(id => {
     const sel = document.getElementById(id), cur = sel.value;
     sel.innerHTML = '<option value="all">📌 전체 출처</option>';
-    sources.forEach(s => { const o=new Option(s,s); if(s===cur)o.selected=true; sel.add(o); });
+    sources.forEach(s => { const o = new Option(s, s); if (s === cur) o.selected = true; sel.add(o); });
   });
 }
 
@@ -516,68 +512,68 @@ function getFiltered(dateId, srcId) {
   let w = [...allWords];
   const d = document.getElementById(dateId)?.value;
   const s = document.getElementById(srcId)?.value;
-  if (d && d!=='all') w = w.filter(x=>x.created_at?.startsWith(d));
-  if (s && s!=='all') w = w.filter(x=>x.source===s);
+  if (d && d !== 'all') w = w.filter(x => x.created_at?.startsWith(d));
+  if (s && s !== 'all') w = w.filter(x => x.source === s);
   return w;
 }
 
-// ── TAB SWITCH ────────────────────────────────────────────────────────────
+// ── TAB SWITCH ─────────────────────────────────────────────────────────────
 function switchTab(name, btn) {
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
-  if (name==='list')  renderList();
-  if (name==='wrong') renderWrong();
-  if (name==='quiz')  buildPickList();
+  if (name === 'list')  renderList();
+  if (name === 'wrong') renderWrong();
+  if (name === 'quiz')  buildPickList();
 }
 
-// ── INPUT MODE ────────────────────────────────────────────────────────────
+// ── INPUT MODE ─────────────────────────────────────────────────────────────
 document.querySelectorAll('input[name="imode"]').forEach(r => {
-  r.addEventListener('change', ()=>{
-    const ocr = r.value==='ocr';
-    document.getElementById('secManual').style.display = ocr?'none':'block';
-    document.getElementById('secOCR').style.display    = ocr?'block':'none';
+  r.addEventListener('change', () => {
+    const ocr = r.value === 'ocr';
+    document.getElementById('secManual').style.display = ocr ? 'none' : 'block';
+    document.getElementById('secOCR').style.display    = ocr ? 'block' : 'none';
   });
 });
 
-// ── SAVE ──────────────────────────────────────────────────────────────────
+// ── SAVE ───────────────────────────────────────────────────────────────────
 async function saveWord() {
   const word    = document.getElementById('iWord').value.trim();
   const meaning = document.getElementById('iMeaning').value.trim();
-  const source  = document.getElementById('iSource').value.trim()||null;
-  if (!word||!meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
-  const {error} = await db.from('vocab').insert({word,meaning,source});
-  if (error) { showToast('저장 실패: '+error.message); return; }
-  ['iWord','iMeaning','iSource'].forEach(id=>document.getElementById(id).value='');
-  showToast('🐾 '+word+' 저장 완료!');
+  const source  = document.getElementById('iSource').value.trim() || null;
+  if (!word || !meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
+  const { error } = await db.from('vocab').insert({ word, meaning, source });
+  if (error) { showToast('저장 실패: ' + error.message); return; }
+  ['iWord','iMeaning','iSource'].forEach(id => document.getElementById(id).value = '');
+  showToast('🐾 ' + word + ' 저장 완료!');
   await loadVocab();
 }
 
 async function saveWordOCR() {
   const word    = document.getElementById('oWord').value.trim();
   const meaning = document.getElementById('oMeaning').value.trim();
-  const source  = document.getElementById('oSource').value.trim()||null;
-  if (!word||!meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
-  const {error} = await db.from('vocab').insert({word,meaning,source});
-  if (error) { showToast('저장 실패: '+error.message); return; }
-  ['oWord','oMeaning','oSource'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('ocrBox').style.display='none';
-  document.getElementById('imgPreview').style.display='none';
-  document.getElementById('ocrBtn').style.display='none';
-  document.getElementById('ocrFile').value='';
-  showToast('🐾 '+word+' 저장 완료!');
+  const source  = document.getElementById('oSource').value.trim() || null;
+  if (!word || !meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
+  const { error } = await db.from('vocab').insert({ word, meaning, source });
+  if (error) { showToast('저장 실패: ' + error.message); return; }
+  ['oWord','oMeaning','oSource'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ocrBox').style.display = 'none';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('ocrBtn').style.display = 'none';
+  document.getElementById('ocrFile').value = '';
+  showToast('🐾 ' + word + ' 저장 완료!');
   await loadVocab();
 }
 
-// ── OCR ───────────────────────────────────────────────────────────────────
+// ── OCR ────────────────────────────────────────────────────────────────────
 function previewImg(e) {
-  const file = e.target.files[0]; if(!file)return;
+  const file = e.target.files[0]; if (!file) return;
   const r = new FileReader();
   r.onload = ev => {
     const img = document.getElementById('imgPreview');
-    img.src = ev.target.result; img.style.display='block';
-    document.getElementById('ocrBtn').style.display='block';
+    img.src = ev.target.result; img.style.display = 'block';
+    document.getElementById('ocrBtn').style.display = 'block';
   };
   r.readAsDataURL(file);
 }
@@ -586,23 +582,28 @@ async function runOCR() {
   const fi = document.getElementById('ocrFile');
   if (!fi.files[0]) return;
   const btn = document.getElementById('ocrBtn');
-  btn.textContent='⏳ 처리 중...'; btn.disabled=true;
+  btn.textContent = '⏳ 처리 중...'; btn.disabled = true;
   try {
     if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
-    const {data:{text}} = await Tesseract.recognize(fi.files[0],'eng');
-    const cleaned = text.replace(/\n/g,' ').replace(/\s+/g,' ').trim();
+    const { data: { text } } = await Tesseract.recognize(fi.files[0], 'eng');
+    const cleaned = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
     const box = document.getElementById('ocrBox');
-    box.textContent='추출된 텍스트: '+cleaned; box.style.display='block';
-    document.getElementById('oWord').value = cleaned.split(' ')[0].replace(/[^a-zA-Z]/g,'');
-  } catch(e) { showToast('OCR 오류: '+e.message); }
-  finally { btn.textContent='🔍 텍스트 추출'; btn.disabled=false; }
+    box.textContent = '추출된 텍스트: ' + cleaned; box.style.display = 'block';
+    document.getElementById('oWord').value = cleaned.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+  } catch(e) { showToast('OCR 오류: ' + e.message); }
+  finally { btn.textContent = '🔍 텍스트 추출'; btn.disabled = false; }
 }
 
-function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
 
-// ── LIST (TAB 2) ──────────────────────────────────────────────────────────
+// ── LIST ───────────────────────────────────────────────────────────────────
 function renderList() {
-  const words = getFiltered('listDate','listSrc');
+  const words = getFiltered('listDate', 'listSrc');
   const container = document.getElementById('listContainer');
   const footer    = document.getElementById('listFooter');
   const badge     = document.getElementById('listCountBadge');
@@ -610,13 +611,13 @@ function renderList() {
 
   if (!words.length) {
     container.innerHTML = `<div class="empty"><div class="ei">🐶</div><p>단어가 없어요</p></div>`;
-    footer.style.display='none';
+    footer.style.display = 'none';
     badge.textContent = '( 0개 단어 )';
     return;
   }
 
   badge.textContent = `( ${words.length}개 단어 )`;
-  footer.style.display='flex';
+  footer.style.display = 'flex';
 
   let html = `<div class="tbl-wrap"><table class="wtbl">
     <thead><tr>
@@ -625,7 +626,7 @@ function renderList() {
     </tr></thead><tbody>`;
 
   words.forEach(w => {
-    const d   = w.created_at?.slice(0,10)||'';
+    const d   = w.created_at?.slice(0,10) || '';
     const src = w.source ? `<span class="src-badge">${esc(w.source)}</span>` : '';
     html += `<tr id="row-${w.id}">
       <td class="td-check"><input type="checkbox" class="row-chk" data-id="${w.id}" onchange="toggleRow(this)"/></td>
@@ -650,53 +651,78 @@ function renderList() {
 function toggleRow(chk) {
   const id = Number(chk.dataset.id);
   if (chk.checked) listSelected.add(id); else listSelected.delete(id);
-  const row = document.getElementById('row-'+id);
-  if (row) row.classList.toggle('selected', chk.checked);
-  updateListSelInfo();
-  // update header checkbox state
-  const all = document.querySelectorAll('.row-chk');
+  document.getElementById('row-' + id)?.classList.toggle('selected', chk.checked);
+  const all     = document.querySelectorAll('.row-chk');
   const checked = document.querySelectorAll('.row-chk:checked');
-  const ca = document.getElementById('checkAll');
-  if (ca) { ca.indeterminate = checked.length>0 && checked.length<all.length; ca.checked = checked.length===all.length; }
+  const ca      = document.getElementById('checkAll');
+  if (ca) { ca.indeterminate = checked.length > 0 && checked.length < all.length; ca.checked = checked.length === all.length; }
+  updateListSelInfo();
 }
 
 function toggleAllList(masterChk) {
   document.querySelectorAll('.row-chk').forEach(chk => {
     chk.checked = masterChk.checked;
     const id = Number(chk.dataset.id);
-    if (masterChk.checked) { listSelected.add(id); document.getElementById('row-'+id)?.classList.add('selected'); }
-    else { listSelected.delete(id); document.getElementById('row-'+id)?.classList.remove('selected'); }
+    if (masterChk.checked) { listSelected.add(id); document.getElementById('row-' + id)?.classList.add('selected'); }
+    else { listSelected.delete(id); document.getElementById('row-' + id)?.classList.remove('selected'); }
   });
   updateListSelInfo();
 }
 
 function selectAllList() {
   const ca = document.getElementById('checkAll');
-  if (ca) { ca.checked=true; ca.indeterminate=false; }
-  toggleAllList({checked:true});
+  if (ca) { ca.checked = true; ca.indeterminate = false; }
+  toggleAllList({ checked: true });
 }
 
 function clearSelList() {
   const ca = document.getElementById('checkAll');
-  if (ca) { ca.checked=false; ca.indeterminate=false; }
-  toggleAllList({checked:false});
+  if (ca) { ca.checked = false; ca.indeterminate = false; }
+  toggleAllList({ checked: false });
 }
 
 function updateListSelInfo(total) {
-  const el = document.getElementById('listSelInfo');
-  const words = getFiltered('listDate','listSrc');
-  const t = total !== undefined ? total : words.length;
+  const el    = document.getElementById('listSelInfo');
   const badge = document.getElementById('listCountBadge');
+  const words = getFiltered('listDate', 'listSrc');
+  const t     = total !== undefined ? total : words.length;
   if (listSelected.size > 0) {
-    el.textContent = listSelected.size+'개 선택됨';
+    el.textContent    = listSelected.size + '개 선택됨';
     badge.textContent = `( ${listSelected.size}개 선택 / 전체 ${t}개 )`;
   } else {
-    el.textContent = '';
+    el.textContent    = '';
     badge.textContent = `( ${t}개 단어 )`;
   }
 }
 
-// ── SPEECH ────────────────────────────────────────────────────────────────
+// ── DELETE ─────────────────────────────────────────────────────────────────
+function openDeleteModal() {
+  if (listSelected.size === 0) { showToast('삭제할 단어를 먼저 선택해주세요!'); return; }
+  document.getElementById('modalDeleteDesc').textContent =
+    `선택한 ${listSelected.size}개 단어를 삭제할까요?\n오답노트에서도 함께 삭제됩니다.`;
+  document.getElementById('modalDelete').classList.add('show');
+}
+
+function closeDeleteModal() {
+  document.getElementById('modalDelete').classList.remove('show');
+}
+
+async function confirmDelete() {
+  const ids = [...listSelected];
+  const { error } = await db.from('vocab').delete().in('id', ids);
+  if (error) { showToast('삭제 실패: ' + error.message); return; }
+  closeDeleteModal();
+  showToast('🗑️ ' + ids.length + '개 단어 삭제 완료!');
+  listSelected.clear();
+  await loadVocab();
+  await loadWrong();
+}
+
+document.getElementById('modalDelete').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeDeleteModal();
+});
+
+// ── SPEECH ─────────────────────────────────────────────────────────────────
 function speak(word, lang) {
   if (!window.speechSynthesis) { showToast('이 브라우저는 발음을 지원하지 않아요'); return; }
   window.speechSynthesis.cancel();
@@ -705,20 +731,23 @@ function speak(word, lang) {
   window.speechSynthesis.speak(u);
 }
 
-// ── QUIZ MODE SELECT ──────────────────────────────────────────────────────
+// ── QUIZ MODE ──────────────────────────────────────────────────────────────
 function selectQuizMode(mode) {
   quizMode = mode;
-  document.getElementById('mcDate').classList.toggle('active', mode==='date');
-  document.getElementById('mcPick').classList.toggle('active', mode==='pick');
-  document.getElementById('setupDate').style.display = mode==='date'?'block':'none';
-  document.getElementById('setupPick').style.display = mode==='pick'?'block':'none';
+  document.getElementById('mcDate').classList.toggle('active', mode === 'date');
+  document.getElementById('mcPick').classList.toggle('active', mode === 'pick');
+  document.getElementById('setupDate').style.display = mode === 'date' ? 'block' : 'none';
+  document.getElementById('setupPick').style.display = mode === 'pick' ? 'block' : 'none';
 }
 
 function buildPickList() {
   const el = document.getElementById('pickList');
   if (!el) return;
-  if (!allWords.length) { el.innerHTML='<div class="empty" style="padding:1rem"><p>단어를 먼저 추가해주세요</p></div>'; return; }
-  let html='';
+  if (!allWords.length) {
+    el.innerHTML = '<div class="empty" style="padding:1rem"><p>단어를 먼저 추가해주세요</p></div>';
+    return;
+  }
+  let html = '';
   allWords.forEach(w => {
     html += `<label class="check-item">
       <input type="checkbox" class="pick-chk" data-id="${w.id}" onchange="updatePickCount()"/>
@@ -731,52 +760,47 @@ function buildPickList() {
 
 function updatePickCount() {
   const n = document.querySelectorAll('.pick-chk:checked').length;
-  document.getElementById('pickSelCount').textContent = n+'개 선택됨';
+  document.getElementById('pickSelCount').textContent = n + '개 선택됨';
 }
 
-function pickAll()   { document.querySelectorAll('.pick-chk').forEach(c=>c.checked=true);  updatePickCount(); }
-function pickClear() { document.querySelectorAll('.pick-chk').forEach(c=>c.checked=false); updatePickCount(); }
+function pickAll()   { document.querySelectorAll('.pick-chk').forEach(c => c.checked = true);  updatePickCount(); }
+function pickClear() { document.querySelectorAll('.pick-chk').forEach(c => c.checked = false); updatePickCount(); }
 
 function selectCount(el, n) {
-  document.querySelectorAll('.pills .pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.pills .pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active'); quizCount = n;
 }
 
-// ── QUIZ START ────────────────────────────────────────────────────────────
+// ── QUIZ ───────────────────────────────────────────────────────────────────
 function startQuiz() {
   let pool = [];
-
-  if (quizMode==='date') {
-    pool = getFiltered('qDate','qSrc');
+  if (quizMode === 'date') {
+    pool = getFiltered('qDate', 'qSrc');
   } else {
-    const checked = [...document.querySelectorAll('.pick-chk:checked')];
-    const ids = new Set(checked.map(c=>Number(c.dataset.id)));
-    pool = allWords.filter(w=>ids.has(w.id));
+    const ids = new Set([...document.querySelectorAll('.pick-chk:checked')].map(c => Number(c.dataset.id)));
+    pool = allWords.filter(w => ids.has(w.id));
   }
-
   if (!pool.length) { showToast('선택된 단어가 없어요!'); return; }
-
-  const n = quizMode==='date' ? Math.min(quizCount, pool.length) : pool.length;
+  const n   = quizMode === 'date' ? Math.min(quizCount, pool.length) : pool.length;
   quizWords = shuffle(pool).slice(0, n);
-  quizIdx=0; quizOk=0; quizBad=0;
-
-  document.getElementById('quizSetup').style.display='none';
-  document.getElementById('quizArea').style.display='block';
-  document.getElementById('quizDone').style.display='none';
+  quizIdx = 0; quizOk = 0; quizBad = 0;
+  document.getElementById('quizSetup').style.display = 'none';
+  document.getElementById('quizArea').style.display  = 'block';
+  document.getElementById('quizDone').style.display  = 'none';
   renderCard();
 }
 
 function renderCard() {
   if (quizIdx >= quizWords.length) { showDone(); return; }
   const w   = quizWords[quizIdx];
-  const pct = Math.round((quizIdx/quizWords.length)*100);
-  document.getElementById('progTxt').textContent   = (quizIdx+1)+' / '+quizWords.length;
-  document.getElementById('progPct').textContent   = pct+'%';
-  document.getElementById('progFill').style.width  = pct+'%';
-  document.getElementById('cWord').textContent     = w.word;
-  document.getElementById('cMean').textContent     = w.meaning;
-  document.getElementById('cMean').style.display   = 'none';
-  document.getElementById('cSrc').textContent      = w.source ? '📌 '+w.source : '';
+  const pct = Math.round((quizIdx / quizWords.length) * 100);
+  document.getElementById('progTxt').textContent  = (quizIdx + 1) + ' / ' + quizWords.length;
+  document.getElementById('progPct').textContent  = pct + '%';
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('cWord').textContent    = w.word;
+  document.getElementById('cMean').textContent    = w.meaning;
+  document.getElementById('cMean').style.display  = 'none';
+  document.getElementById('cSrc').textContent     = w.source ? '📌 ' + w.source : '';
   document.getElementById('btnShow').style.display  = 'block';
   document.getElementById('btnJudge').style.display = 'none';
 }
@@ -795,26 +819,26 @@ async function judge(ok) {
 }
 
 async function recordWrong(w) {
-  const ex = wrongWords.find(x=>x.vocab_id===w.id);
+  const ex = wrongWords.find(x => x.vocab_id === w.id);
   if (ex) {
-    await db.from('wrong_answers').update({wrong_count:ex.wrong_count+1, last_wrong_at:new Date().toISOString()}).eq('id',ex.id);
+    await db.from('wrong_answers').update({ wrong_count: ex.wrong_count + 1, last_wrong_at: new Date().toISOString() }).eq('id', ex.id);
   } else {
-    await db.from('wrong_answers').insert({vocab_id:w.id, word:w.word, meaning:w.meaning, source:w.source||null, wrong_count:1});
+    await db.from('wrong_answers').insert({ vocab_id: w.id, word: w.word, meaning: w.meaning, source: w.source || null, wrong_count: 1 });
   }
   await loadWrong();
 }
 
 function showDone() {
-  document.getElementById('quizArea').style.display='none';
-  document.getElementById('quizDone').style.display='block';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('quizDone').style.display = 'block';
   document.getElementById('doneSummary').textContent =
     `총 ${quizWords.length}개 | 맞은 것 ${quizOk}개 | 틀린 것 ${quizBad}개`;
 }
 
 function resetQuiz() {
-  document.getElementById('quizSetup').style.display='block';
-  document.getElementById('quizArea').style.display='none';
-  document.getElementById('quizDone').style.display='none';
+  document.getElementById('quizSetup').style.display = 'block';
+  document.getElementById('quizArea').style.display  = 'none';
+  document.getElementById('quizDone').style.display  = 'none';
 }
 
 function goWrong() {
@@ -822,21 +846,21 @@ function goWrong() {
   resetQuiz();
 }
 
-// ── WRONG (TAB 4) ─────────────────────────────────────────────────────────
+// ── WRONG ──────────────────────────────────────────────────────────────────
 function renderWrong() {
   const sum = document.getElementById('wrongSummary');
   const con = document.getElementById('wrongContainer');
   if (!wrongWords.length) {
-    sum.innerHTML='';
-    con.innerHTML=`<div class="empty"><div class="ei">🌸</div><p>오답이 없어요! 완벽해요 💕</p></div>`;
+    sum.innerHTML = '';
+    con.innerHTML = `<div class="empty"><div class="ei">🌸</div><p>오답이 없어요! 완벽해요 💕</p></div>`;
     return;
   }
-  sum.innerHTML=`<div class="summary-chip">❌ 오답 단어 ${wrongWords.length}개</div>`;
-  let html='';
+  sum.innerHTML = `<div class="summary-chip">❌ 오답 단어 ${wrongWords.length}개</div>`;
+  let html = '';
   wrongWords.forEach(w => {
-    const d   = w.last_wrong_at?.slice(0,10)||'';
-    const src = w.source?`<span class="src-badge">${esc(w.source)}</span>`:'';
-    html+=`<div class="wrong-card">
+    const d   = w.last_wrong_at?.slice(0,10) || '';
+    const src = w.source ? `<span class="src-badge">${esc(w.source)}</span>` : '';
+    html += `<div class="wrong-card">
       <div style="flex:1">
         <p class="wrong-word">${esc(w.word)}</p>
         <p class="wrong-mean">${esc(w.meaning)}</p>
@@ -851,29 +875,45 @@ function renderWrong() {
       </div>
     </div>`;
   });
-  con.innerHTML=html;
+  con.innerHTML = html;
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────
+// ── MASTERED MODAL ─────────────────────────────────────────────────────────
 function openModal(id, word) {
-  masterId=id; masterWord=word;
-  document.getElementById('modalDesc').textContent=`"${word}"을(를) 오답노트에서 삭제할까요?\n(단어장 원본은 유지됩니다)`;
+  masterId = id; masterWord = word;
+  document.getElementById('modalDesc').textContent = `"${word}"을(를) 오답노트에서 삭제할까요?\n(단어장 원본은 유지됩니다)`;
   document.getElementById('modal').classList.add('show');
 }
-function closeModal() { document.getElementById('modal').classList.remove('show'); masterId=null; }
+function closeModal() { document.getElementById('modal').classList.remove('show'); masterId = null; }
 async function confirmMaster() {
   if (!masterId) return;
-  await db.from('wrong_answers').delete().eq('id',masterId);
-  closeModal(); showToast('🎊 '+masterWord+' 암기완료!');
+  await db.from('wrong_answers').delete().eq('id', masterId);
+  closeModal();
+  showToast('🎊 ' + masterWord + ' 암기완료!');
   await loadWrong();
 }
-document.getElementById('modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
-// ── UTILS ─────────────────────────────────────────────────────────────────
-function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]]; } return r; }
-function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function shuffle(a) {
+  const r = [...a];
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 let toastT;
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
 </script>
 </body>
 </html>
