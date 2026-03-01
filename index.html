@@ -442,6 +442,8 @@ hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
 const SUPABASE_URL = 'https://onqjuvisyobcmmnkpchn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_3UHtrpmbSdpdPCnyLe5KBw_8bwuHpv7';
 
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── STATE ──────────────────────────────────────────────────────────────────
 let allWords   = [];
 let wrongWords = [];
