@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>사랑하는 서연이의 단어 공부장</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --cream:#fdf8f2; --warm:#f5ebe0; --peach:#f2c4a0;
+  --rose:#e8927c;  --burg:#a84c4c; --ink:#2d1f1f;
+  --ink2:#5a3e3e;  --soft:#9b7272; --white:#ffffff;
+  --shadow:rgba(168,76,76,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ── BACKGROUND DECO ── */
+body {
+  font-family:'Gowun Dodum',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+.bg-deco {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  overflow:hidden;
+}
+.bg-paw {
+  position:absolute;
+  font-size:1.6rem;
+  opacity:0.07;
+  transform:rotate(var(--r,0deg));
+  animation: floatPaw 12s ease-in-out infinite;
+  animation-delay: var(--d,0s);
+}
+@keyframes floatPaw {
+  0%,100%{transform:translateY(0) rotate(var(--r,0deg));}
+  50%{transform:translateY(-10px) rotate(var(--r,0deg));}
+}
+
+/* ── HEADER ── */
+.header {
+  position:relative; z-index:1;
+  text-align:center;
+  padding:2rem 1rem 0.5rem;
+}
+.header-top { display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:4px; }
+.header-paw { font-size:1.4rem; animation:wiggle 2s ease-in-out infinite; }
+@keyframes wiggle{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+.header-sub { font-family:'Nanum Pen Script',cursive; font-size:1rem; color:var(--rose); letter-spacing:2px; margin-bottom:3px; }
+.header-title { font-family:'DM Serif Display',serif; font-size:1.5rem; color:var(--burg); line-height:1.35; word-break:keep-all; }
+.header-line { width:50px; height:2px; background:linear-gradient(90deg,var(--peach),var(--rose)); border-radius:2px; margin:.7rem auto 0; }
+
+/* ── TABS ── */
+.tabs {
+  position:relative; z-index:1;
+  display:flex; max-width:480px; margin:1rem auto 0;
+  padding:0 .8rem; gap:3px;
+}
+.tab-btn {
+  flex:1; padding:.5rem .1rem;
+  border:none; background:var(--warm); color:var(--soft);
+  font-family:'Gowun Dodum',sans-serif; font-size:.72rem;
+  border-radius:10px 10px 0 0; cursor:pointer; transition:all .2s;
+  white-space:nowrap;
+}
+.tab-btn.active { background:var(--white); color:var(--burg); font-weight:700; box-shadow:0 -2px 8px var(--shadow); }
+
+/* ── CONTAINER ── */
+.container { position:relative; z-index:1; max-width:480px; margin:0 auto; padding:0 .8rem 5rem; }
+.panel { display:none; background:var(--white); border-radius:0 0 18px 18px; padding:1.3rem 1.1rem; box-shadow:0 4px 24px var(--shadow); animation:fadeUp .22s ease; }
+.panel.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── SECTION TITLE ── */
+.sec-title { font-family:'DM Serif Display',serif; font-size:1.05rem; color:var(--burg); margin-bottom:.9rem; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.sec-title small { font-family:'Gowun Dodum',sans-serif; font-size:.78rem; color:var(--soft); font-weight:400; }
+
+/* ── FORM ── */
+label { display:block; font-size:.8rem; color:var(--soft); margin:.8rem 0 3px; }
+input[type=text],select,textarea {
+  width:100%; padding:.62rem .85rem;
+  border:1.5px solid var(--warm); border-radius:9px;
+  font-family:'Gowun Dodum',sans-serif; font-size:.93rem;
+  color:var(--ink); background:var(--cream); outline:none; transition:border-color .2s;
+}
+input[type=text]:focus,select:focus,textarea:focus { border-color:var(--rose); background:#fff; }
+textarea { resize:vertical; min-height:58px; }
+
+/* ── BUTTONS ── */
+.btn { display:block; width:100%; padding:.75rem; border:none; border-radius:11px; font-family:'Gowun Dodum',sans-serif; font-size:.95rem; font-weight:700; cursor:pointer; transition:all .18s; margin-top:.55rem; }
+.btn-primary   { background:var(--burg); color:#fff; }
+.btn-primary:hover  { background:#8f3c3c; transform:translateY(-1px); }
+.btn-secondary { background:var(--warm); color:var(--burg); }
+.btn-secondary:hover{ background:var(--peach); }
+.btn-rose      { background:var(--rose); color:#fff; }
+.btn-rose:hover{ background:#d97a65; }
+.btn-outline   { background:transparent; border:1.5px solid var(--rose); color:var(--rose); }
+.btn-outline:hover { background:var(--rose); color:#fff; }
+.btn-ghost     { background:transparent; border:1.5px solid var(--warm); color:var(--soft); }
+.btn-danger    { background:#f44336; color:#fff; }
+.btn-sm        { display:inline-block; width:auto; padding:.35rem .85rem; font-size:.78rem; margin-top:0; }
+.btn-row       { display:flex; gap:7px; margin-top:.7rem; }
+.btn-row .btn  { margin-top:0; }
+
+/* ── RADIO GROUP ── */
+.radio-group { display:flex; gap:7px; margin-bottom:.9rem; }
+.radio-group label { flex:1; margin:0; padding:.5rem; text-align:center; border:1.5px solid var(--warm); border-radius:9px; cursor:pointer; color:var(--soft); font-size:.85rem; transition:all .18s; }
+.radio-group input { display:none; }
+.radio-group input:checked+label { background:var(--burg); border-color:var(--burg); color:#fff; font-weight:700; }
+
+/* ── PILLS ── */
+.pills { display:flex; gap:5px; margin-bottom:.9rem; }
+.pill { flex:1; padding:.42rem .2rem; text-align:center; border:1.5px solid var(--warm); border-radius:50px; font-size:.8rem; color:var(--soft); cursor:pointer; transition:all .18s; background:var(--cream); }
+.pill.active { background:var(--rose); border-color:var(--rose); color:#fff; font-weight:700; }
+
+/* ── FILTER ROW ── */
+.filter-row { display:flex; gap:7px; margin-bottom:.8rem; }
+.filter-row select { flex:1; margin-top:0; }
+
+/* ── FLASHCARD ── */
+.prog-row { display:flex; justify-content:space-between; font-size:.8rem; color:var(--soft); margin-bottom:.4rem; }
+.prog-wrap { width:100%; height:5px; background:var(--warm); border-radius:10px; margin-bottom:1rem; }
+.prog-fill  { height:100%; background:linear-gradient(90deg,var(--peach),var(--rose)); border-radius:10px; transition:width .4s ease; }
+.flashcard {
+  background:linear-gradient(145deg,#2d1f1f 0%,#a84c4c 100%);
+  border-radius:20px; padding:2.5rem 1.4rem 2.2rem;
+  text-align:center; min-height:210px;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  box-shadow:0 8px 28px rgba(168,76,76,.28); position:relative; overflow:hidden;
+}
+.flashcard::before { content:'🐾'; position:absolute; top:12px; right:16px; font-size:1.2rem; opacity:.18; }
+.flashcard::after  { content:'🐾'; position:absolute; bottom:12px; left:16px; font-size:1rem; opacity:.13; transform:rotate(20deg); }
+.card-lbl  { font-size:.68rem; color:rgba(255,255,255,.45); letter-spacing:3px; text-transform:uppercase; margin-bottom:.7rem; }
+.card-word { font-family:'DM Serif Display',serif; font-size:2.5rem; color:#fff; line-height:1.1; }
+.card-mean { font-size:1.35rem; color:var(--peach); margin-top:.9rem; font-weight:700; animation:fadeUp .3s ease; }
+.card-src  { font-size:.72rem; color:rgba(255,255,255,.35); margin-top:.5rem; }
+
+/* ── WORD TABLE ── */
+.tbl-wrap { overflow-x:auto; border-radius:10px; border:1.5px solid var(--warm); }
+table.wtbl { width:100%; border-collapse:collapse; font-size:.84rem; min-width:340px; }
+table.wtbl thead tr { background:var(--warm); }
+table.wtbl th { padding:.55rem .5rem; text-align:left; font-size:.74rem; color:var(--burg); font-weight:700; white-space:nowrap; }
+table.wtbl td { padding:.6rem .5rem; border-bottom:1px solid var(--warm); color:var(--ink2); vertical-align:middle; }
+table.wtbl tr:last-child td { border-bottom:none; }
+table.wtbl tr.selected td { background:#fff5f5; }
+table.wtbl tr:hover td { background:var(--cream); }
+.td-check { width:28px; text-align:center; }
+.td-check input[type=checkbox] { width:15px; height:15px; accent-color:var(--burg); cursor:pointer; }
+.word-en { font-family:'DM Serif Display',serif; color:var(--burg); font-size:.98rem; }
+.src-badge { display:inline-block; background:var(--warm); color:var(--soft); font-size:.68rem; padding:2px 7px; border-radius:50px; white-space:nowrap; }
+.sound-btns { display:flex; gap:4px; }
+.snd-btn { background:var(--warm); border:none; border-radius:6px; padding:3px 7px; font-size:.72rem; color:var(--burg); cursor:pointer; transition:all .15s; white-space:nowrap; }
+.snd-btn:hover { background:var(--peach); }
+.snd-btn:active { transform:scale(.95); }
+.tbl-footer { display:flex; justify-content:space-between; align-items:center; margin-top:.6rem; flex-wrap:wrap; gap:6px; }
+.tbl-count { font-size:.8rem; color:var(--soft); }
+.tbl-actions { display:flex; gap:6px; }
+
+/* ── WRONG CARD ── */
+.wrong-card { background:var(--cream); border:1.5px solid var(--warm); border-radius:13px; padding:.9rem 1rem; margin-bottom:.7rem; display:flex; justify-content:space-between; align-items:center; gap:.7rem; }
+.wrong-word { font-family:'DM Serif Display',serif; font-size:1.15rem; color:var(--burg); }
+.wrong-mean { font-size:.85rem; color:var(--ink2); margin-top:2px; }
+.wrong-meta { font-size:.72rem; color:var(--soft); margin-top:4px; display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+.cnt-badge  { background:var(--burg); color:#fff; font-size:.7rem; padding:2px 8px; border-radius:50px; white-space:nowrap; }
+.summary-chip { display:inline-flex; align-items:center; gap:5px; background:var(--warm); border-radius:50px; padding:.38rem .9rem; font-size:.82rem; color:var(--burg); font-weight:700; margin-bottom:.9rem; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:1.4rem; left:50%; transform:translateX(-50%) translateY(70px); background:var(--burg); color:#fff; padding:.65rem 1.4rem; border-radius:50px; font-size:.88rem; z-index:999; transition:transform .3s ease; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,.2); }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── MODAL ── */
+.modal-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:900; justify-content:center; align-items:flex-end; }
+.modal-ov.show { display:flex; }
+.modal-box { background:#fff; border-radius:20px 20px 0 0; padding:1.8rem 1.4rem; width:100%; max-width:480px; text-align:center; animation:slideUp .25s ease; }
+@keyframes slideUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-title { font-family:'DM Serif Display',serif; font-size:1.15rem; color:var(--burg); margin-bottom:.4rem; }
+.modal-desc  { font-size:.88rem; color:var(--soft); margin-bottom:1.4rem; white-space:pre-line; }
+
+/* ── OCR ── */
+input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach); border-radius:9px; background:var(--cream); font-size:.83rem; color:var(--soft); cursor:pointer; }
+.img-preview { width:100%; border-radius:11px; margin:.7rem 0; display:none; object-fit:cover; max-height:180px; }
+.ocr-box { background:var(--warm); border-radius:9px; padding:.65rem .85rem; font-size:.85rem; color:var(--ink2); margin:.5rem 0; display:none; }
+
+/* ── EMPTY ── */
+.empty { text-align:center; padding:2.5rem 1rem; color:var(--soft); }
+.empty .ei { font-size:2.2rem; margin-bottom:.4rem; }
+
+/* ── COMPLETE ── */
+.complete { text-align:center; padding:1.8rem 1rem; }
+.complete .ce { font-size:2.8rem; margin-bottom:.4rem; }
+.complete h3 { font-family:'DM Serif Display',serif; font-size:1.35rem; color:var(--burg); margin-bottom:.4rem; }
+.complete p  { font-size:.88rem; color:var(--soft); margin-bottom:1.1rem; }
+
+/* ── DIVIDER ── */
+hr { border:none; border-top:1.5px solid var(--warm); margin:1rem 0; }
+
+/* ── QUIZ MODE SELECT ── */
+.mode-cards { display:flex; gap:9px; margin-bottom:1rem; }
+.mode-card {
+  flex:1; border:2px solid var(--warm); border-radius:13px;
+  padding:.8rem .5rem; text-align:center; cursor:pointer;
+  transition:all .2s; background:var(--cream);
+}
+.mode-card.active { border-color:var(--burg); background:#fff5f5; }
+.mode-card .mc-icon { font-size:1.5rem; margin-bottom:4px; }
+.mode-card .mc-lbl  { font-size:.78rem; color:var(--soft); font-weight:700; }
+.mode-card.active .mc-lbl { color:var(--burg); }
+
+/* checklist for word select */
+.checklist-wrap { border:1.5px solid var(--warm); border-radius:10px; overflow:hidden; max-height:260px; overflow-y:auto; margin-bottom:.8rem; }
+.check-item { display:flex; align-items:center; gap:10px; padding:.6rem .9rem; border-bottom:1px solid var(--warm); cursor:pointer; transition:background .15s; }
+.check-item:last-child { border-bottom:none; }
+.check-item:hover { background:var(--cream); }
+.check-item input[type=checkbox]{ width:16px; height:16px; accent-color:var(--burg); flex-shrink:0; }
+.check-item .ci-word { font-family:'DM Serif Display',serif; color:var(--burg); font-size:.98rem; }
+.check-item .ci-mean { font-size:.78rem; color:var(--soft); }
+.check-sel-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem; font-size:.8rem; color:var(--soft); }
+</style>
+</head>
+<body>
+
+<!-- BG DECO PAWS -->
+<div class="bg-deco" id="bgDeco"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <span class="header-paw">🐾</span>
+    <span class="header-paw" style="animation-delay:.4s">🐶</span>
+    <span class="header-paw" style="animation-delay:.8s">🐾</span>
+  </div>
+  <p class="header-sub">✨ study with love ✨</p>
+  <h1 class="header-title">사랑하는 서연이의<br>단어 공부장</h1>
+  <div class="header-line"></div>
+</div>
+
+<!-- TABS: 입력 > 단어장 > 퀴즈 > 오답노트 -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('input',this)">✏️ 입력</button>
+  <button class="tab-btn"        onclick="switchTab('list',this)">📋 단어장</button>
+  <button class="tab-btn"        onclick="switchTab('quiz',this)">🎯 퀴즈</button>
+  <button class="tab-btn"        onclick="switchTab('wrong',this)">❌ 오답노트</button>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════
+     TAB 1: 입력
+══════════════════════════════════════ -->
+<div id="panel-input" class="panel active">
+  <p class="sec-title">📝 새 단어 추가</p>
+
+  <div class="radio-group">
+    <input type="radio" name="imode" id="mManual" value="manual" checked>
+    <label for="mManual">✍️ 직접 입력</label>
+    <input type="radio" name="imode" id="mOCR" value="ocr">
+    <label for="mOCR">📷 이미지 OCR</label>
+  </div>
+
+  <!-- MANUAL -->
+  <div id="secManual">
+    <label>🔤 영어 단어 <span style="color:var(--rose)">*</span></label>
+    <input type="text" id="iWord" placeholder="예) ephemeral"/>
+    <label>🇰🇷 한국어 뜻 <span style="color:var(--rose)">*</span></label>
+    <input type="text" id="iMeaning" placeholder="예) 일시적인, 덧없는"/>
+    <label>📌 출처 <span style="color:var(--soft);font-size:.73rem">(선택)</span></label>
+    <input type="text" id="iSource" placeholder="예) voca100 - day1"/>
+    <button class="btn btn-primary" onclick="saveWord()" style="margin-top:1.1rem">🐾 저장하기</button>
+  </div>
+
+  <!-- OCR -->
+  <div id="secOCR" style="display:none">
+    <label>📷 이미지 업로드</label>
+    <input type="file" accept="image/*" id="ocrFile" onchange="previewImg(event)"/>
+    <img id="imgPreview" class="img-preview"/>
+    <button class="btn btn-secondary" id="ocrBtn" onclick="runOCR()" style="display:none">🔍 텍스트 추출</button>
+    <div class="ocr-box" id="ocrBox"></div>
+    <label>🔤 영어 단어 <span style="color:var(--rose)">*</span></label>
+    <input type="text" id="oWord" placeholder="추출 후 확인/수정"/>
+    <label>🇰🇷 한국어 뜻 <span style="color:var(--rose)">*</span></label>
+    <input type="text" id="oMeaning" placeholder="뜻을 입력하세요"/>
+    <label>📌 출처 <span style="color:var(--soft);font-size:.73rem">(선택)</span></label>
+    <input type="text" id="oSource" placeholder="예) voca100 - day1"/>
+    <button class="btn btn-primary" onclick="saveWordOCR()" style="margin-top:1.1rem">🐾 저장하기</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 2: 단어장
+══════════════════════════════════════ -->
+<div id="panel-list" class="panel">
+  <p class="sec-title" id="listTitle">
+    📋 전체 단어장 <small id="listCountBadge">( 0개 단어 )</small>
+  </p>
+
+  <div class="filter-row">
+    <select id="listDate" onchange="renderList()">
+      <option value="all">📅 전체 날짜</option>
+    </select>
+    <select id="listSrc" onchange="renderList()">
+      <option value="all">📌 전체 출처</option>
+    </select>
+  </div>
+
+  <div id="listContainer"></div>
+
+  <div class="tbl-footer" id="listFooter" style="display:none">
+    <span class="tbl-count" id="listSelInfo"></span>
+    <div class="tbl-actions">
+      <button class="btn btn-outline btn-sm" onclick="selectAllList()">전체선택</button>
+      <button class="btn btn-ghost btn-sm"   onclick="clearSelList()">선택해제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 3: 퀴즈
+══════════════════════════════════════ -->
+<div id="panel-quiz" class="panel">
+  <p class="sec-title">🎯 플래시카드 퀴즈</p>
+
+  <!-- SETUP -->
+  <div id="quizSetup">
+    <p style="font-size:.82rem;color:var(--soft);margin-bottom:.7rem">퀴즈 방식을 선택해주세요 🐶</p>
+    <div class="mode-cards">
+      <div class="mode-card active" id="mcDate" onclick="selectQuizMode('date')">
+        <div class="mc-icon">📅</div>
+        <div class="mc-lbl">날짜/출처로<br>선택</div>
+      </div>
+      <div class="mode-card" id="mcPick" onclick="selectQuizMode('pick')">
+        <div class="mc-icon">☑️</div>
+        <div class="mc-lbl">단어장에서<br>직접 선택</div>
+      </div>
+    </div>
+
+    <!-- DATE MODE -->
+    <div id="setupDate">
+      <div class="filter-row">
+        <select id="qDate">
+          <option value="all">📅 전체 날짜</option>
+        </select>
+        <select id="qSrc">
+          <option value="all">📌 전체 출처</option>
+        </select>
+      </div>
+      <div class="pills">
+        <div class="pill active" onclick="selectCount(this,5)">5개</div>
+        <div class="pill" onclick="selectCount(this,10)">10개</div>
+        <div class="pill" onclick="selectCount(this,999)">전체</div>
+      </div>
+    </div>
+
+    <!-- PICK MODE -->
+    <div id="setupPick" style="display:none">
+      <div class="check-sel-row">
+        <span id="pickSelCount">0개 선택됨</span>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" onclick="pickAll()">전체선택</button>
+          <button class="btn btn-ghost btn-sm" onclick="pickClear()">전체해제</button>
+        </div>
+      </div>
+      <div class="checklist-wrap" id="pickList"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="startQuiz()">🔀 퀴즈 시작!</button>
+  </div>
+
+  <!-- QUIZ AREA -->
+  <div id="quizArea" style="display:none">
+    <div class="prog-row">
+      <span id="progTxt">1 / 5</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+    <div class="flashcard">
+      <p class="card-lbl">ENGLISH WORD</p>
+      <p class="card-word" id="cWord">—</p>
+      <p class="card-mean" id="cMean" style="display:none"></p>
+      <p class="card-src"  id="cSrc"></p>
+    </div>
+
+    <div id="btnShow" style="margin-top:.8rem">
+      <button class="btn btn-secondary" onclick="showMean()">👁️ 뜻 보기</button>
+    </div>
+    <div id="btnJudge" style="display:none;margin-top:.8rem">
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="judge(false)">❌ 틀렸어요</button>
+        <button class="btn btn-primary"   onclick="judge(true)">✅ 맞았어요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETE -->
+  <div id="quizDone" style="display:none">
+    <div class="complete">
+      <div class="ce">🎊</div>
+      <h3>퀴즈 완료!</h3>
+      <p id="doneSummary"></p>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 하기</button>
+      <button class="btn btn-secondary" onclick="goWrong()" style="margin-top:.5rem">❌ 오답 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 4: 오답노트
+══════════════════════════════════════ -->
+<div id="panel-wrong" class="panel">
+  <p class="sec-title">❌ 오답노트</p>
+  <div id="wrongSummary"></div>
+  <div id="wrongContainer"></div>
+</div>
+
+</div><!-- /container -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal-box">
+    <p class="modal-title">암기 완료! 🎊</p>
+    <p class="modal-desc" id="modalDesc"></p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary"   onclick="confirmMaster()">확인 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════  JS  ════════════════════════════════ -->
+<script>
+// ── ⚠️ SUPABASE CONFIG — 아래 두 줄을 본인 값으로 교체하세요 ─────────────
+const SUPABASE_URL = 'https://xxxxxxxxxxxxxxxx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxxxxx...';
+// ──────────────────────────────────────────────────────────────────────────
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let allWords   = [];
+let wrongWords = [];
+let quizWords  = [];
+let quizIdx    = 0, quizOk = 0, quizBad = 0;
+let quizCount  = 5;
+let quizMode   = 'date';   // 'date' | 'pick'
+let masterId   = null, masterWord = '';
+let listSelected = new Set();
+
+// ── BG PAWS ───────────────────────────────────────────────────────────────
+(function() {
+  const icons = ['🐾','🐶','🐱','🐰','🐻','🌸','🍀','⭐','🐾'];
+  const deco = document.getElementById('bgDeco');
+  for (let i=0;i<18;i++) {
+    const el = document.createElement('div');
+    el.className = 'bg-paw';
+    el.textContent = icons[i % icons.length];
+    el.style.left   = (Math.random()*95) + '%';
+    el.style.top    = (Math.random()*95) + '%';
+    el.style.setProperty('--r', (Math.random()*60-30)+'deg');
+    el.style.setProperty('--d', (Math.random()*8)+'s');
+    el.style.fontSize = (.9 + Math.random()*.9) + 'rem';
+    deco.appendChild(el);
+  }
+})();
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadVocab();
+  await loadWrong();
+  buildPickList();
+});
+
+async function loadVocab() {
+  const { data, error } = await db.from('vocab').select('*').order('created_at',{ascending:false});
+  if (error) { showToast('DB 오류: '+error.message); return; }
+  allWords = data || [];
+  populateFilters();
+  renderList();
+  buildPickList();
+}
+
+async function loadWrong() {
+  const { data } = await db.from('wrong_answers').select('*').order('wrong_count',{ascending:false});
+  wrongWords = data || [];
+  renderWrong();
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────
+function populateFilters() {
+  const dates   = [...new Set(allWords.map(w=>w.created_at?.slice(0,10)))].filter(Boolean).sort().reverse();
+  const sources = [...new Set(allWords.map(w=>w.source).filter(Boolean))].sort();
+
+  const dateSels   = ['listDate','qDate'];
+  const sourceSels = ['listSrc','qSrc'];
+
+  dateSels.forEach(id => {
+    const sel = document.getElementById(id), cur = sel.value;
+    sel.innerHTML = '<option value="all">📅 전체 날짜</option>';
+    dates.forEach(d => { const o=new Option(d,d); if(d===cur)o.selected=true; sel.add(o); });
+  });
+  sourceSels.forEach(id => {
+    const sel = document.getElementById(id), cur = sel.value;
+    sel.innerHTML = '<option value="all">📌 전체 출처</option>';
+    sources.forEach(s => { const o=new Option(s,s); if(s===cur)o.selected=true; sel.add(o); });
+  });
+}
+
+function getFiltered(dateId, srcId) {
+  let w = [...allWords];
+  const d = document.getElementById(dateId)?.value;
+  const s = document.getElementById(srcId)?.value;
+  if (d && d!=='all') w = w.filter(x=>x.created_at?.startsWith(d));
+  if (s && s!=='all') w = w.filter(x=>x.source===s);
+  return w;
+}
+
+// ── TAB SWITCH ────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name==='list')  renderList();
+  if (name==='wrong') renderWrong();
+  if (name==='quiz')  buildPickList();
+}
+
+// ── INPUT MODE ────────────────────────────────────────────────────────────
+document.querySelectorAll('input[name="imode"]').forEach(r => {
+  r.addEventListener('change', ()=>{
+    const ocr = r.value==='ocr';
+    document.getElementById('secManual').style.display = ocr?'none':'block';
+    document.getElementById('secOCR').style.display    = ocr?'block':'none';
+  });
+});
+
+// ── SAVE ──────────────────────────────────────────────────────────────────
+async function saveWord() {
+  const word    = document.getElementById('iWord').value.trim();
+  const meaning = document.getElementById('iMeaning').value.trim();
+  const source  = document.getElementById('iSource').value.trim()||null;
+  if (!word||!meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
+  const {error} = await db.from('vocab').insert({word,meaning,source});
+  if (error) { showToast('저장 실패: '+error.message); return; }
+  ['iWord','iMeaning','iSource'].forEach(id=>document.getElementById(id).value='');
+  showToast('🐾 '+word+' 저장 완료!');
+  await loadVocab();
+}
+
+async function saveWordOCR() {
+  const word    = document.getElementById('oWord').value.trim();
+  const meaning = document.getElementById('oMeaning').value.trim();
+  const source  = document.getElementById('oSource').value.trim()||null;
+  if (!word||!meaning) { showToast('단어와 뜻을 입력해주세요!'); return; }
+  const {error} = await db.from('vocab').insert({word,meaning,source});
+  if (error) { showToast('저장 실패: '+error.message); return; }
+  ['oWord','oMeaning','oSource'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ocrBox').style.display='none';
+  document.getElementById('imgPreview').style.display='none';
+  document.getElementById('ocrBtn').style.display='none';
+  document.getElementById('ocrFile').value='';
+  showToast('🐾 '+word+' 저장 완료!');
+  await loadVocab();
+}
+
+// ── OCR ───────────────────────────────────────────────────────────────────
+function previewImg(e) {
+  const file = e.target.files[0]; if(!file)return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const img = document.getElementById('imgPreview');
+    img.src = ev.target.result; img.style.display='block';
+    document.getElementById('ocrBtn').style.display='block';
+  };
+  r.readAsDataURL(file);
+}
+
+async function runOCR() {
+  const fi = document.getElementById('ocrFile');
+  if (!fi.files[0]) return;
+  const btn = document.getElementById('ocrBtn');
+  btn.textContent='⏳ 처리 중...'; btn.disabled=true;
+  try {
+    if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    const {data:{text}} = await Tesseract.recognize(fi.files[0],'eng');
+    const cleaned = text.replace(/\n/g,' ').replace(/\s+/g,' ').trim();
+    const box = document.getElementById('ocrBox');
+    box.textContent='추출된 텍스트: '+cleaned; box.style.display='block';
+    document.getElementById('oWord').value = cleaned.split(' ')[0].replace(/[^a-zA-Z]/g,'');
+  } catch(e) { showToast('OCR 오류: '+e.message); }
+  finally { btn.textContent='🔍 텍스트 추출'; btn.disabled=false; }
+}
+
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+
+// ── LIST (TAB 2) ──────────────────────────────────────────────────────────
+function renderList() {
+  const words = getFiltered('listDate','listSrc');
+  const container = document.getElementById('listContainer');
+  const footer    = document.getElementById('listFooter');
+  const badge     = document.getElementById('listCountBadge');
+  listSelected.clear();
+
+  if (!words.length) {
+    container.innerHTML = `<div class="empty"><div class="ei">🐶</div><p>단어가 없어요</p></div>`;
+    footer.style.display='none';
+    badge.textContent = '( 0개 단어 )';
+    return;
+  }
+
+  badge.textContent = `( ${words.length}개 단어 )`;
+  footer.style.display='flex';
+
+  let html = `<div class="tbl-wrap"><table class="wtbl">
+    <thead><tr>
+      <th class="td-check"><input type="checkbox" id="checkAll" onchange="toggleAllList(this)"/></th>
+      <th>날짜</th><th>영어 단어</th><th>한글 뜻</th><th>출처</th><th>발음</th>
+    </tr></thead><tbody>`;
+
+  words.forEach(w => {
+    const d   = w.created_at?.slice(0,10)||'';
+    const src = w.source ? `<span class="src-badge">${esc(w.source)}</span>` : '';
+    html += `<tr id="row-${w.id}">
+      <td class="td-check"><input type="checkbox" class="row-chk" data-id="${w.id}" onchange="toggleRow(this)"/></td>
+      <td style="font-size:.74rem;color:var(--soft);white-space:nowrap">${d}</td>
+      <td><span class="word-en">${esc(w.word)}</span></td>
+      <td style="font-size:.85rem">${esc(w.meaning)}</td>
+      <td>${src}</td>
+      <td>
+        <div class="sound-btns">
+          <button class="snd-btn" onclick="speak('${esc(w.word)}','en-US')">🇺🇸</button>
+          <button class="snd-btn" onclick="speak('${esc(w.word)}','en-GB')">🇬🇧</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+  updateListSelInfo(words.length);
+}
+
+function toggleRow(chk) {
+  const id = Number(chk.dataset.id);
+  if (chk.checked) listSelected.add(id); else listSelected.delete(id);
+  const row = document.getElementById('row-'+id);
+  if (row) row.classList.toggle('selected', chk.checked);
+  updateListSelInfo();
+  // update header checkbox state
+  const all = document.querySelectorAll('.row-chk');
+  const checked = document.querySelectorAll('.row-chk:checked');
+  const ca = document.getElementById('checkAll');
+  if (ca) { ca.indeterminate = checked.length>0 && checked.length<all.length; ca.checked = checked.length===all.length; }
+}
+
+function toggleAllList(masterChk) {
+  document.querySelectorAll('.row-chk').forEach(chk => {
+    chk.checked = masterChk.checked;
+    const id = Number(chk.dataset.id);
+    if (masterChk.checked) { listSelected.add(id); document.getElementById('row-'+id)?.classList.add('selected'); }
+    else { listSelected.delete(id); document.getElementById('row-'+id)?.classList.remove('selected'); }
+  });
+  updateListSelInfo();
+}
+
+function selectAllList() {
+  const ca = document.getElementById('checkAll');
+  if (ca) { ca.checked=true; ca.indeterminate=false; }
+  toggleAllList({checked:true});
+}
+
+function clearSelList() {
+  const ca = document.getElementById('checkAll');
+  if (ca) { ca.checked=false; ca.indeterminate=false; }
+  toggleAllList({checked:false});
+}
+
+function updateListSelInfo(total) {
+  const el = document.getElementById('listSelInfo');
+  const words = getFiltered('listDate','listSrc');
+  const t = total !== undefined ? total : words.length;
+  const badge = document.getElementById('listCountBadge');
+  if (listSelected.size > 0) {
+    el.textContent = listSelected.size+'개 선택됨';
+    badge.textContent = `( ${listSelected.size}개 선택 / 전체 ${t}개 )`;
+  } else {
+    el.textContent = '';
+    badge.textContent = `( ${t}개 단어 )`;
+  }
+}
+
+// ── SPEECH ────────────────────────────────────────────────────────────────
+function speak(word, lang) {
+  if (!window.speechSynthesis) { showToast('이 브라우저는 발음을 지원하지 않아요'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = lang; u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+// ── QUIZ MODE SELECT ──────────────────────────────────────────────────────
+function selectQuizMode(mode) {
+  quizMode = mode;
+  document.getElementById('mcDate').classList.toggle('active', mode==='date');
+  document.getElementById('mcPick').classList.toggle('active', mode==='pick');
+  document.getElementById('setupDate').style.display = mode==='date'?'block':'none';
+  document.getElementById('setupPick').style.display = mode==='pick'?'block':'none';
+}
+
+function buildPickList() {
+  const el = document.getElementById('pickList');
+  if (!el) return;
+  if (!allWords.length) { el.innerHTML='<div class="empty" style="padding:1rem"><p>단어를 먼저 추가해주세요</p></div>'; return; }
+  let html='';
+  allWords.forEach(w => {
+    html += `<label class="check-item">
+      <input type="checkbox" class="pick-chk" data-id="${w.id}" onchange="updatePickCount()"/>
+      <div><div class="ci-word">${esc(w.word)}</div><div class="ci-mean">${esc(w.meaning)}</div></div>
+    </label>`;
+  });
+  el.innerHTML = html;
+  updatePickCount();
+}
+
+function updatePickCount() {
+  const n = document.querySelectorAll('.pick-chk:checked').length;
+  document.getElementById('pickSelCount').textContent = n+'개 선택됨';
+}
+
+function pickAll()   { document.querySelectorAll('.pick-chk').forEach(c=>c.checked=true);  updatePickCount(); }
+function pickClear() { document.querySelectorAll('.pick-chk').forEach(c=>c.checked=false); updatePickCount(); }
+
+function selectCount(el, n) {
+  document.querySelectorAll('.pills .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); quizCount = n;
+}
+
+// ── QUIZ START ────────────────────────────────────────────────────────────
+function startQuiz() {
+  let pool = [];
+
+  if (quizMode==='date') {
+    pool = getFiltered('qDate','qSrc');
+  } else {
+    const checked = [...document.querySelectorAll('.pick-chk:checked')];
+    const ids = new Set(checked.map(c=>Number(c.dataset.id)));
+    pool = allWords.filter(w=>ids.has(w.id));
+  }
+
+  if (!pool.length) { showToast('선택된 단어가 없어요!'); return; }
+
+  const n = quizMode==='date' ? Math.min(quizCount, pool.length) : pool.length;
+  quizWords = shuffle(pool).slice(0, n);
+  quizIdx=0; quizOk=0; quizBad=0;
+
+  document.getElementById('quizSetup').style.display='none';
+  document.getElementById('quizArea').style.display='block';
+  document.getElementById('quizDone').style.display='none';
+  renderCard();
+}
+
+function renderCard() {
+  if (quizIdx >= quizWords.length) { showDone(); return; }
+  const w   = quizWords[quizIdx];
+  const pct = Math.round((quizIdx/quizWords.length)*100);
+  document.getElementById('progTxt').textContent   = (quizIdx+1)+' / '+quizWords.length;
+  document.getElementById('progPct').textContent   = pct+'%';
+  document.getElementById('progFill').style.width  = pct+'%';
+  document.getElementById('cWord').textContent     = w.word;
+  document.getElementById('cMean').textContent     = w.meaning;
+  document.getElementById('cMean').style.display   = 'none';
+  document.getElementById('cSrc').textContent      = w.source ? '📌 '+w.source : '';
+  document.getElementById('btnShow').style.display  = 'block';
+  document.getElementById('btnJudge').style.display = 'none';
+}
+
+function showMean() {
+  document.getElementById('cMean').style.display   = 'block';
+  document.getElementById('btnShow').style.display  = 'none';
+  document.getElementById('btnJudge').style.display = 'block';
+}
+
+async function judge(ok) {
+  const w = quizWords[quizIdx];
+  if (ok) { quizOk++; } else { quizBad++; await recordWrong(w); }
+  quizIdx++;
+  renderCard();
+}
+
+async function recordWrong(w) {
+  const ex = wrongWords.find(x=>x.vocab_id===w.id);
+  if (ex) {
+    await db.from('wrong_answers').update({wrong_count:ex.wrong_count+1, last_wrong_at:new Date().toISOString()}).eq('id',ex.id);
+  } else {
+    await db.from('wrong_answers').insert({vocab_id:w.id, word:w.word, meaning:w.meaning, source:w.source||null, wrong_count:1});
+  }
+  await loadWrong();
+}
+
+function showDone() {
+  document.getElementById('quizArea').style.display='none';
+  document.getElementById('quizDone').style.display='block';
+  document.getElementById('doneSummary').textContent =
+    `총 ${quizWords.length}개 | 맞은 것 ${quizOk}개 | 틀린 것 ${quizBad}개`;
+}
+
+function resetQuiz() {
+  document.getElementById('quizSetup').style.display='block';
+  document.getElementById('quizArea').style.display='none';
+  document.getElementById('quizDone').style.display='none';
+}
+
+function goWrong() {
+  document.querySelectorAll('.tab-btn')[3].click();
+  resetQuiz();
+}
+
+// ── WRONG (TAB 4) ─────────────────────────────────────────────────────────
+function renderWrong() {
+  const sum = document.getElementById('wrongSummary');
+  const con = document.getElementById('wrongContainer');
+  if (!wrongWords.length) {
+    sum.innerHTML='';
+    con.innerHTML=`<div class="empty"><div class="ei">🌸</div><p>오답이 없어요! 완벽해요 💕</p></div>`;
+    return;
+  }
+  sum.innerHTML=`<div class="summary-chip">❌ 오답 단어 ${wrongWords.length}개</div>`;
+  let html='';
+  wrongWords.forEach(w => {
+    const d   = w.last_wrong_at?.slice(0,10)||'';
+    const src = w.source?`<span class="src-badge">${esc(w.source)}</span>`:'';
+    html+=`<div class="wrong-card">
+      <div style="flex:1">
+        <p class="wrong-word">${esc(w.word)}</p>
+        <p class="wrong-mean">${esc(w.meaning)}</p>
+        <div class="wrong-meta">
+          <span class="cnt-badge">❌ ${w.wrong_count}회 틀림</span>
+          ${src}
+          <span>마지막: ${d}</span>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-outline btn-sm" onclick="openModal(${w.id},'${esc(w.word)}')">✅ 암기완료</button>
+      </div>
+    </div>`;
+  });
+  con.innerHTML=html;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(id, word) {
+  masterId=id; masterWord=word;
+  document.getElementById('modalDesc').textContent=`"${word}"을(를) 오답노트에서 삭제할까요?\n(단어장 원본은 유지됩니다)`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); masterId=null; }
+async function confirmMaster() {
+  if (!masterId) return;
+  await db.from('wrong_answers').delete().eq('id',masterId);
+  closeModal(); showToast('🎊 '+masterWord+' 암기완료!');
+  await loadWrong();
+}
+document.getElementById('modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [r[i],r[j]]=[r[j],r[i]]; } return r; }
+function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+let toastT;
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2800); }
+</script>
+</body>
+</html>
