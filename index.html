@@ -557,6 +557,7 @@ function renderList(){
   });
   html+=`</tbody></table></div>`;
   container.innerHTML=html; updateListSelInfo(words.length);
+  words.forEach(w => loadPhonetic(w.word, w.id));
 }
 function toggleRow(chk){
   const id=Number(chk.dataset.id);
