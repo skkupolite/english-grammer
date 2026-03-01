@@ -169,7 +169,7 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
     <input type="radio" name="imode" id="mManual" value="manual" checked>
     <label for="mManual">✍️ 직접 입력</label>
     <input type="radio" name="imode" id="mOCR" value="ocr">
-    <label for="mOCR">📷 이미지 OCR</label>
+    <label for="mOCR">📷 사진 첨부</label>
   </div>
   <div id="secManual">
     <label>🔤 영어 단어 <span style="color:var(--rose)">*</span></label>
@@ -259,6 +259,12 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
         </div>
       </div>
       <div class="checklist-wrap" id="datePickList"></div>
+      <p style="font-size:.78rem;color:var(--soft);margin:.6rem 0 .3rem">선택한 단어 중 몇 개 풀까요?</p>
+      <div class="pills">
+        <div class="pill active" onclick="selectCount(this,5)">5개</div>
+        <div class="pill" onclick="selectCount(this,10)">10개</div>
+        <div class="pill" onclick="selectCount(this,999)">전체</div>
+      </div>
     </div>
     <div id="setupPick" style="display:none">
       <div class="check-sel-row">
@@ -660,7 +666,8 @@ function startQuiz(){
     pool=allWords.filter(w=>ids.has(w.id));
   }
   if(!pool.length){showToast('선택된 단어가 없어요!');return;}
-  quizWords=shuffle(pool); quizIdx=0; quizOk=0; quizBad=0;
+  const n=quizMode==='date'?Math.min(quizCount,pool.length):pool.length;
+  quizWords=shuffle(pool).slice(0,n); quizIdx=0; quizOk=0; quizBad=0;
   document.getElementById('quizSetup').style.display='none';
   document.getElementById('quizArea').style.display='block';
   document.getElementById('quizDone').style.display='none';
