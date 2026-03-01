@@ -181,10 +181,10 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
     <button class="btn btn-primary" onclick="saveWord()" style="margin-top:1.1rem">🐾 저장하기</button>
   </div>
   <div id="secOCR" style="display:none">
-    <label>📷 교재 사진 업로드</label>
-    <input type="file" accept="image/*" id="ocrFile" onchange="previewImg(event)"/>
-    <img id="imgPreview" class="img-preview"/>
-    <button class="btn btn-secondary" id="ocrBtn" onclick="runOCR()" style="display:none">🤖 AI로 단어 자동 추출</button>
+    <label>📷 교재 사진 첨부</label>
+    <input type="file" accept="image/*" id="ocrFile" multiple onchange="previewImgs(event)"/>
+    <div id="imgPreviewWrap"></div>
+    <button class="btn btn-secondary" id="ocrBtn" onclick="runOCR()" style="display:none">📎 사진 첨부해서 단어 찾기</button>
     <div class="ocr-loading" id="ocrLoading">
       <span class="spin">⚙️</span>
       AI가 단어를 분석하고 있어요...<br>
@@ -248,14 +248,17 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
     </div>
     <div id="setupDate">
       <div class="filter-row">
-        <select id="qDate"><option value="all">📅 전체 날짜</option></select>
-        <select id="qSrc"><option value="all">📌 전체 출처</option></select>
+        <select id="qDate" onchange="buildDatePickList()"><option value="all">📅 전체 날짜</option></select>
+        <select id="qSrc" onchange="buildDatePickList()"><option value="all">📌 전체 출처</option></select>
       </div>
-      <div class="pills">
-        <div class="pill active" onclick="selectCount(this,5)">5개</div>
-        <div class="pill" onclick="selectCount(this,10)">10개</div>
-        <div class="pill" onclick="selectCount(this,999)">전체</div>
+      <div class="check-sel-row">
+        <span id="datePickSelCount">0개 선택됨</span>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" onclick="datePickAll()">전체선택</button>
+          <button class="btn btn-ghost btn-sm" onclick="datePickClear()">전체해제</button>
+        </div>
       </div>
+      <div class="checklist-wrap" id="datePickList"></div>
     </div>
     <div id="setupPick" style="display:none">
       <div class="check-sel-row">
@@ -333,8 +336,8 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
 
 <script>
 // ⚠️ 아래 두 줄만 본인 값으로 교체 (Anthropic 키는 여기 없어요 - 안전!)
-const SUPABASE_URL = 'https://onqjuvisyobcmmnkpchn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ucWp1dmlzeW9iY21tbmtwY2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjE4MzIsImV4cCI6MjA4NzkzNzgzMn0.Uvd1MtmeGJXeE98dbG0I9AxzoBGsUqEC3no7SifrAB8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -383,6 +386,7 @@ function populateFilters(){
     sel.innerHTML='<option value="all">📌 전체 출처</option>';
     sources.forEach(s=>{const o=new Option(s,s);if(s===cur)o.selected=true;sel.add(o);});
   });
+  buildDatePickList();
 }
 function getFiltered(dId,sId){
   let w=[...allWords];
@@ -418,36 +422,48 @@ async function saveWord(){
 }
 
 // OCR
-function previewImg(e){
-  const file=e.target.files[0]; if(!file) return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    const img=document.getElementById('imgPreview');
-    img.src=ev.target.result; img.style.display='block';
-    document.getElementById('ocrBtn').style.display='block';
-    document.getElementById('ocrReview').style.display='none';
-  };
-  r.readAsDataURL(file);
+function previewImgs(e){
+  const files=Array.from(e.target.files); if(!files.length) return;
+  const wrap=document.getElementById('imgPreviewWrap');
+  wrap.innerHTML='';
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=document.createElement('img');
+      img.src=ev.target.result;
+      img.className='img-preview';
+      img.style.display='block';
+      wrap.appendChild(img);
+    };
+    r.readAsDataURL(file);
+  });
+  document.getElementById('ocrBtn').style.display='block';
+  document.getElementById('ocrReview').style.display='none';
 }
 async function runOCR(){
-  const fi=document.getElementById('ocrFile'); if(!fi.files[0]) return;
+  const fi=document.getElementById('ocrFile'); if(!fi.files.length) return;
+  const files=Array.from(fi.files);
   document.getElementById('ocrBtn').style.display='none';
   document.getElementById('ocrLoading').style.display='block';
   document.getElementById('ocrReview').style.display='none';
   try{
-    const base64=await fileToBase64(fi.files[0]);
-    const mediaType=fi.files[0].type||'image/jpeg';
-    const res=await fetch(EDGE_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_KEY},
-      body:JSON.stringify({imageBase64:base64,mediaType})
-    });
-    if(!res.ok){const err=await res.json();throw new Error(err.error||'서버 오류');}
-    const data=await res.json();
-    if(!data.words||!data.words.length) throw new Error('추출된 단어가 없어요. 사진을 다시 찍어보세요.');
-    renderReviewTable(data.words);
+    let allWords=[];
+    for(const file of files){
+      const base64=await fileToBase64(file);
+      const mediaType=file.type||'image/jpeg';
+      const res=await fetch(EDGE_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_KEY},
+        body:JSON.stringify({imageBase64:base64,mediaType})
+      });
+      if(!res.ok){const err=await res.json();throw new Error(err.error||'서버 오류');}
+      const data=await res.json();
+      if(data.words) allWords=allWords.concat(data.words);
+    }
+    if(!allWords.length) throw new Error('추출된 단어가 없어요. 사진을 다시 찍어보세요.');
+    renderReviewTable(allWords);
     document.getElementById('ocrReview').style.display='block';
-    showToast('✅ '+data.words.length+'개 단어 추출 완료!');
+    showToast('✅ '+allWords.length+'개 단어 추출 완료!');
   }catch(e){
     showToast('오류: '+e.message);
     document.getElementById('ocrBtn').style.display='block';
@@ -470,7 +486,7 @@ function makeReviewRow(word,meaning){
 function addReviewRow(){document.getElementById('reviewBody').appendChild(makeReviewRow('',''));}
 function resetOCR(){
   document.getElementById('ocrFile').value='';
-  document.getElementById('imgPreview').style.display='none';
+  document.getElementById('imgPreviewWrap').innerHTML='';
   document.getElementById('ocrBtn').style.display='none';
   document.getElementById('ocrReview').style.display='none';
   document.getElementById('ocrLoading').style.display='none';
@@ -490,25 +506,10 @@ async function saveAllOCR(){
   if(error){showToast('저장 실패: '+error.message);return;}
   showToast('🐾 '+items.length+'개 단어 저장 완료!'); resetOCR(); await loadVocab();
 }
-function fileToBase64(file) {
-  return new Promise((res, rej) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const MAX = 1024;
-      let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) {
-        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-        else       { w = Math.round(w * MAX / h); h = MAX; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      res(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
-    };
-    img.onerror = rej;
-    img.src = url;
+function fileToBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file);
   });
 }
 
@@ -537,10 +538,15 @@ function renderList(){
       <td><span class="word-en">${esc(w.word)}</span></td>
       <td style="font-size:.85rem">${esc(w.meaning)}</td>
       <td>${src}</td>
-      <td><div class="sound-btns">
-        <button class="snd-btn" onclick="speak('${esc(w.word)}','en-US')">🇺🇸</button>
-        <button class="snd-btn" onclick="speak('${esc(w.word)}','en-GB')">🇬🇧</button>
-      </div></td>
+      <td>
+        <div style="font-size:.72rem;color:var(--soft);margin-bottom:3px" id="ph-${w.id}">
+          <span style="cursor:pointer;text-decoration:underline dotted" onclick="loadPhonetic('${esc(w.word)}',${w.id})">발음기호 보기</span>
+        </div>
+        <div class="sound-btns">
+          <button class="snd-btn" onclick="speak('${esc(w.word)}','en-US')">🇺🇸</button>
+          <button class="snd-btn" onclick="speak('${esc(w.word)}','en-GB')">🇬🇧</button>
+        </div>
+      </td>
     </tr>`;
   });
   html+=`</tbody></table></div>`;
@@ -589,6 +595,22 @@ function speak(word,lang){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(word); u.lang=lang; u.rate=0.85; window.speechSynthesis.speak(u);
 }
+const phoneticCache={};
+async function loadPhonetic(word,id){
+  const el=document.getElementById('ph-'+id); if(!el) return;
+  if(phoneticCache[word]){el.textContent=phoneticCache[word];return;}
+  el.textContent='...';
+  try{
+    const res=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word));
+    if(!res.ok) throw new Error();
+    const data=await res.json();
+    const phonetic=data[0]?.phonetic || data[0]?.phonetics?.find(p=>p.text)?.text || '';
+    const display=phonetic||'(발음기호 없음)';
+    phoneticCache[word]=display; el.textContent=display;
+  }catch{
+    el.textContent='(없음)';
+  }
+}
 function selectQuizMode(mode){
   quizMode=mode;
   document.getElementById('mcDate').classList.toggle('active',mode==='date');
@@ -612,13 +634,33 @@ function updatePickCount(){document.getElementById('pickSelCount').textContent=d
 function pickAll(){document.querySelectorAll('.pick-chk').forEach(c=>c.checked=true);updatePickCount();}
 function pickClear(){document.querySelectorAll('.pick-chk').forEach(c=>c.checked=false);updatePickCount();}
 function selectCount(el,n){document.querySelectorAll('.pills .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');quizCount=n;}
+function buildDatePickList(){
+  const el=document.getElementById('datePickList'); if(!el) return;
+  const words=getFiltered('qDate','qSrc');
+  if(!words.length){el.innerHTML='<div class="empty" style="padding:1rem"><p>해당 단어가 없어요</p></div>';updateDatePickCount();return;}
+  let html='';
+  words.forEach(w=>{
+    html+=`<label class="check-item">
+      <input type="checkbox" class="date-pick-chk" data-id="${w.id}" onchange="updateDatePickCount()" checked/>
+      <div><div class="ci-word">${esc(w.word)}</div><div class="ci-mean">${esc(w.meaning)}</div></div>
+    </label>`;
+  });
+  el.innerHTML=html; updateDatePickCount();
+}
+function updateDatePickCount(){document.getElementById('datePickSelCount').textContent=document.querySelectorAll('.date-pick-chk:checked').length+'개 선택됨';}
+function datePickAll(){document.querySelectorAll('.date-pick-chk').forEach(c=>c.checked=true);updateDatePickCount();}
+function datePickClear(){document.querySelectorAll('.date-pick-chk').forEach(c=>c.checked=false);updateDatePickCount();}
 function startQuiz(){
   let pool=[];
-  if(quizMode==='date') pool=getFiltered('qDate','qSrc');
-  else{const ids=new Set([...document.querySelectorAll('.pick-chk:checked')].map(c=>Number(c.dataset.id)));pool=allWords.filter(w=>ids.has(w.id));}
+  if(quizMode==='date'){
+    const ids=new Set([...document.querySelectorAll('.date-pick-chk:checked')].map(c=>Number(c.dataset.id)));
+    pool=allWords.filter(w=>ids.has(w.id));
+  } else{
+    const ids=new Set([...document.querySelectorAll('.pick-chk:checked')].map(c=>Number(c.dataset.id)));
+    pool=allWords.filter(w=>ids.has(w.id));
+  }
   if(!pool.length){showToast('선택된 단어가 없어요!');return;}
-  const n=quizMode==='date'?Math.min(quizCount,pool.length):pool.length;
-  quizWords=shuffle(pool).slice(0,n); quizIdx=0; quizOk=0; quizBad=0;
+  quizWords=shuffle(pool); quizIdx=0; quizOk=0; quizBad=0;
   document.getElementById('quizSetup').style.display='none';
   document.getElementById('quizArea').style.display='block';
   document.getElementById('quizDone').style.display='none';
