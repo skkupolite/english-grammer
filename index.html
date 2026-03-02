@@ -276,6 +276,17 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
       </div>
       <div class="checklist-wrap" id="pickList"></div>
     </div>
+    <p style="font-size:.82rem;color:var(--soft);margin-bottom:.5rem">📝 퀴즈 유형을 선택해주세요</p>
+    <div class="mode-cards" style="margin-bottom:.8rem">
+      <div class="mode-card active" id="qtFlash" onclick="selectQuizType('flash')">
+        <div class="mc-icon">👁️</div>
+        <div class="mc-lbl">뜻 맞추기<br><span style="font-size:.68rem;font-weight:400">플래시카드</span></div>
+      </div>
+      <div class="mode-card" id="qtType" onclick="selectQuizType('type')">
+        <div class="mc-icon">⌨️</div>
+        <div class="mc-lbl">알파벳 맞추기<br><span style="font-size:.68rem;font-weight:400">직접 타이핑</span></div>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="startQuiz()">🔀 퀴즈 시작!</button>
   </div>
   <div id="quizArea" style="display:none">
@@ -297,7 +308,26 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
       </div>
     </div>
   </div>
-  <div id="quizDone" style="display:none">
+  <!-- 타이핑 퀴즈 영역 -->
+  <div id="typeArea" style="display:none">
+    <div class="prog-row"><span id="tProgTxt">1 / 5</span><span id="tProgPct">0%</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="tProgFill" style="width:0%"></div></div>
+    <div class="flashcard" style="min-height:160px">
+      <p class="card-lbl">KOREAN MEANING</p>
+      <p class="card-word" id="tMean" style="font-size:1.8rem">—</p>
+      <p class="card-src" id="tSrc"></p>
+    </div>
+    <div style="margin-top:.9rem">
+      <input type="text" id="typeInput" placeholder="영어 단어를 입력하세요..."
+        style="text-align:center;font-size:1.1rem;letter-spacing:2px"
+        onkeydown="if(event.key==='Enter') checkType()"/>
+      <div id="typeFeedback" style="text-align:center;font-size:.9rem;margin:.5rem 0;min-height:1.4rem"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="skipType()">⏭️ 모르겠어요</button>
+        <button class="btn btn-primary" onclick="checkType()">✅ 확인</button>
+      </div>
+    </div>
+  </div>
     <div class="complete">
       <div class="ce">🎊</div><h3>퀴즈 완료!</h3>
       <p id="doneSummary"></p>
@@ -350,7 +380,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 const EDGE_URL = SUPABASE_URL + '/functions/v1/ocr';
 
 let allWords=[], wrongWords=[], quizWords=[];
-let quizIdx=0, quizOk=0, quizBad=0, quizCount=5, quizMode='date';
+let quizIdx=0, quizOk=0, quizBad=0, quizCount=5, quizMode='date', quizType='flash';
 let masterId=null, masterWord='', listSelected=new Set();
 
 (function(){
@@ -557,7 +587,6 @@ function renderList(){
   });
   html+=`</tbody></table></div>`;
   container.innerHTML=html; updateListSelInfo(words.length);
-  words.forEach(w => loadPhonetic(w.word, w.id));
 }
 function toggleRow(chk){
   const id=Number(chk.dataset.id);
@@ -625,6 +654,11 @@ function selectQuizMode(mode){
   document.getElementById('setupDate').style.display=mode==='date'?'block':'none';
   document.getElementById('setupPick').style.display=mode==='pick'?'block':'none';
 }
+function selectQuizType(type){
+  quizType=type;
+  document.getElementById('qtFlash').classList.toggle('active',type==='flash');
+  document.getElementById('qtType').classList.toggle('active',type==='type');
+}
 function buildPickList(){
   const el=document.getElementById('pickList'); if(!el) return;
   if(!allWords.length){el.innerHTML='<div class="empty" style="padding:1rem"><p>단어를 먼저 추가해주세요</p></div>';return;}
@@ -670,9 +704,16 @@ function startQuiz(){
   const n=quizMode==='date'?Math.min(quizCount,pool.length):pool.length;
   quizWords=shuffle(pool).slice(0,n); quizIdx=0; quizOk=0; quizBad=0;
   document.getElementById('quizSetup').style.display='none';
-  document.getElementById('quizArea').style.display='block';
   document.getElementById('quizDone').style.display='none';
-  renderCard();
+  if(quizType==='flash'){
+    document.getElementById('quizArea').style.display='block';
+    document.getElementById('typeArea').style.display='none';
+    renderCard();
+  } else {
+    document.getElementById('quizArea').style.display='none';
+    document.getElementById('typeArea').style.display='block';
+    renderTypeCard();
+  }
 }
 function renderCard(){
   if(quizIdx>=quizWords.length){showDone();return;}
@@ -705,12 +746,54 @@ async function recordWrong(w){
 }
 function showDone(){
   document.getElementById('quizArea').style.display='none';
+  document.getElementById('typeArea').style.display='none';
   document.getElementById('quizDone').style.display='block';
   document.getElementById('doneSummary').textContent=`총 ${quizWords.length}개 | 맞은 것 ${quizOk}개 | 틀린 것 ${quizBad}개`;
+}
+function renderTypeCard(){
+  if(quizIdx>=quizWords.length){showDone();return;}
+  const w=quizWords[quizIdx], pct=Math.round((quizIdx/quizWords.length)*100);
+  document.getElementById('tProgTxt').textContent=(quizIdx+1)+' / '+quizWords.length;
+  document.getElementById('tProgPct').textContent=pct+'%';
+  document.getElementById('tProgFill').style.width=pct+'%';
+  document.getElementById('tMean').textContent=w.meaning;
+  document.getElementById('tSrc').textContent=w.source?'📌 '+w.source:'';
+  document.getElementById('typeInput').value='';
+  document.getElementById('typeFeedback').textContent='';
+  document.getElementById('typeFeedback').style.color='';
+  setTimeout(()=>document.getElementById('typeInput').focus(),100);
+}
+function checkType(){
+  const w=quizWords[quizIdx];
+  const ans=document.getElementById('typeInput').value.trim().toLowerCase();
+  const correct=w.word.toLowerCase();
+  const fb=document.getElementById('typeFeedback');
+  if(ans===correct){
+    quizOk++;
+    fb.textContent='🎉 정답이에요!';
+    fb.style.color='var(--burg)';
+    setTimeout(()=>{quizIdx++;renderTypeCard();},900);
+  } else {
+    quizBad++;
+    fb.textContent=`❌ 정답: ${w.word}`;
+    fb.style.color='#d94f4f';
+    recordWrong(w);
+    setTimeout(()=>{quizIdx++;renderTypeCard();},1400);
+  }
+}
+function skipType(){
+  const w=quizWords[quizIdx];
+  const fb=document.getElementById('typeFeedback');
+  quizBad++;
+  fb.textContent=`💡 정답: ${w.word}`;
+  fb.style.color='var(--soft)';
+  recordWrong(w);
+  setTimeout(()=>{quizIdx++;renderTypeCard();},1400);
 }
 function resetQuiz(){
   document.getElementById('quizSetup').style.display='block';
   document.getElementById('quizArea').style.display='none';
+  document.getElementById('typeArea').style.display='none';
   document.getElementById('quizDone').style.display='none';
 }
 function goWrong(){document.querySelectorAll('.tab-btn')[3].click();resetQuiz();}
