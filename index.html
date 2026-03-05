@@ -342,6 +342,83 @@ input[type=file] { width:100%; padding:.58rem; border:1.5px dashed var(--peach);
 <div id="panel-wrong" class="panel">
   <p class="sec-title">❌ 오답노트</p>
   <div id="wrongSummary"></div>
+
+  <!-- 오답 퀴즈 영역 -->
+  <div id="wrongQuizSetup" style="display:none;margin-bottom:1rem">
+    <div class="check-sel-row">
+      <span id="wrongPickCount">0개 선택됨</span>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="wrongPickAll()">전체선택</button>
+        <button class="btn btn-ghost btn-sm" onclick="wrongPickClear()">전체해제</button>
+      </div>
+    </div>
+    <div class="checklist-wrap" id="wrongPickList"></div>
+    <p style="font-size:.78rem;color:var(--soft);margin:.6rem 0 .3rem">퀴즈 유형</p>
+    <div class="mode-cards" style="margin-bottom:.8rem">
+      <div class="mode-card active" id="wqtFlash" onclick="selectWrongQuizType('flash')">
+        <div class="mc-icon">👁️</div>
+        <div class="mc-lbl">뜻 맞추기<br><span style="font-size:.68rem;font-weight:400">플래시카드</span></div>
+      </div>
+      <div class="mode-card" id="wqtType" onclick="selectWrongQuizType('type')">
+        <div class="mc-icon">⌨️</div>
+        <div class="mc-lbl">알파벳 맞추기<br><span style="font-size:.68rem;font-weight:400">직접 타이핑</span></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startWrongQuiz()">🎯 퀴즈 시작!</button>
+    <button class="btn btn-ghost" onclick="toggleWrongQuizSetup()" style="margin-top:.4rem">✕ 닫기</button>
+  </div>
+
+  <!-- 오답 퀴즈 플래시카드 -->
+  <div id="wrongQuizArea" style="display:none">
+    <div class="prog-row"><span id="wProgTxt">1 / 5</span><span id="wProgPct">0%</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="wProgFill" style="width:0%"></div></div>
+    <div class="flashcard">
+      <p class="card-lbl">ENGLISH WORD</p>
+      <p class="card-word" id="wCWord">—</p>
+      <p class="card-mean" id="wCMean" style="display:none"></p>
+      <p class="card-src"  id="wCSrc"></p>
+    </div>
+    <div id="wBtnShow" style="margin-top:.8rem">
+      <button class="btn btn-secondary" onclick="wShowMean()">👁️ 뜻 보기</button>
+    </div>
+    <div id="wBtnJudge" style="display:none;margin-top:.8rem">
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="wJudge(false)">❌ 틀렸어요</button>
+        <button class="btn btn-primary"   onclick="wJudge(true)">✅ 맞았어요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오답 퀴즈 타이핑 -->
+  <div id="wrongTypeArea" style="display:none">
+    <div class="prog-row"><span id="wtProgTxt">1 / 5</span><span id="wtProgPct">0%</span></div>
+    <div class="prog-wrap"><div class="prog-fill" id="wtProgFill" style="width:0%"></div></div>
+    <div class="flashcard" style="min-height:160px">
+      <p class="card-lbl">KOREAN MEANING</p>
+      <p class="card-word" id="wtMean" style="font-size:1.8rem">—</p>
+      <p class="card-src" id="wtSrc"></p>
+    </div>
+    <div style="margin-top:.9rem">
+      <input type="text" id="wrongTypeInput" placeholder="영어 단어를 입력하세요..."
+        style="text-align:center;font-size:1.1rem;letter-spacing:2px"
+        onkeydown="if(event.key==='Enter') wCheckType()"/>
+      <div id="wrongTypeFeedback" style="text-align:center;font-size:.9rem;margin:.5rem 0;min-height:1.4rem"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="wSkipType()">⏭️ 모르겠어요</button>
+        <button class="btn btn-primary" onclick="wCheckType()">✅ 확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 오답 퀴즈 완료 -->
+  <div id="wrongQuizDone" style="display:none">
+    <div class="complete">
+      <div class="ce">🎊</div><h3>퀴즈 완료!</h3>
+      <p id="wDoneSummary"></p>
+      <button class="btn btn-primary" onclick="resetWrongQuiz()">🔄 다시 하기</button>
+    </div>
+  </div>
+
   <div id="wrongContainer"></div>
 </div>
 
@@ -801,7 +878,11 @@ function goWrong(){document.querySelectorAll('.tab-btn')[3].click();resetQuiz();
 function renderWrong(){
   const sum=document.getElementById('wrongSummary'), con=document.getElementById('wrongContainer');
   if(!wrongWords.length){sum.innerHTML='';con.innerHTML=`<div class="empty"><div class="ei">🌸</div><p>오답이 없어요! 완벽해요 💕</p></div>`;return;}
-  sum.innerHTML=`<div class="summary-chip">❌ 오답 단어 ${wrongWords.length}개</div>`;
+  sum.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <div class="summary-chip" style="margin-bottom:0">❌ 오답 단어 ${wrongWords.length}개</div>
+      <button class="btn btn-outline btn-sm" onclick="toggleWrongQuizSetup()">🎯 선택 퀴즈</button>
+    </div>`;
   let html='';
   wrongWords.forEach(w=>{
     const d=w.last_wrong_at?.slice(0,10)||'', src=w.source?`<span class="src-badge">${esc(w.source)}</span>`:'';
@@ -831,6 +912,151 @@ function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.fl
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 let toastT;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
+// ===== 오답노트 퀴즈 =====
+let wrongQuizWords=[], wrongQuizIdx=0, wrongQuizOk=0, wrongQuizBad=0, wrongQuizType='flash';
+
+function toggleWrongQuizSetup(){
+  const setup=document.getElementById('wrongQuizSetup');
+  const isVisible=setup.style.display!=='none';
+  if(isVisible){
+    setup.style.display='none';
+  } else {
+    setup.style.display='block';
+    buildWrongPickList();
+  }
+}
+
+function buildWrongPickList(){
+  const el=document.getElementById('wrongPickList');
+  if(!wrongWords.length){
+    el.innerHTML='<div class="empty" style="padding:1rem"><p>오답 단어가 없어요</p></div>';
+    return;
+  }
+  let html='';
+  wrongWords.forEach(w=>{
+    html+=`<label class="check-item">
+      <input type="checkbox" class="wrong-pick-chk" data-id="${w.id}" data-word="${esc(w.word)}" data-meaning="${esc(w.meaning)}" data-source="${esc(w.source||'')}" onchange="updateWrongPickCount()" checked/>
+      <div>
+        <div class="ci-word">${esc(w.word)}</div>
+        <div class="ci-mean">${esc(w.meaning)} · ❌ ${w.wrong_count}회</div>
+      </div>
+    </label>`;
+  });
+  el.innerHTML=html; updateWrongPickCount();
+}
+
+function updateWrongPickCount(){
+  document.getElementById('wrongPickCount').textContent=
+    document.querySelectorAll('.wrong-pick-chk:checked').length+'개 선택됨';
+}
+function wrongPickAll(){document.querySelectorAll('.wrong-pick-chk').forEach(c=>c.checked=true);updateWrongPickCount();}
+function wrongPickClear(){document.querySelectorAll('.wrong-pick-chk').forEach(c=>c.checked=false);updateWrongPickCount();}
+
+function selectWrongQuizType(type){
+  wrongQuizType=type;
+  document.getElementById('wqtFlash').classList.toggle('active',type==='flash');
+  document.getElementById('wqtType').classList.toggle('active',type==='type');
+}
+
+function startWrongQuiz(){
+  const checked=[...document.querySelectorAll('.wrong-pick-chk:checked')];
+  if(!checked.length){showToast('단어를 선택해주세요!');return;}
+  wrongQuizWords=checked.map(c=>({
+    id:Number(c.dataset.id), word:c.dataset.word,
+    meaning:c.dataset.meaning, source:c.dataset.source
+  }));
+  wrongQuizWords=shuffle(wrongQuizWords);
+  wrongQuizIdx=0; wrongQuizOk=0; wrongQuizBad=0;
+  document.getElementById('wrongQuizSetup').style.display='none';
+  document.getElementById('wrongQuizDone').style.display='none';
+  document.getElementById('wrongContainer').style.display='none';
+  document.getElementById('wrongSummary').style.display='none';
+  if(wrongQuizType==='flash'){
+    document.getElementById('wrongQuizArea').style.display='block';
+    document.getElementById('wrongTypeArea').style.display='none';
+    wRenderCard();
+  } else {
+    document.getElementById('wrongQuizArea').style.display='none';
+    document.getElementById('wrongTypeArea').style.display='block';
+    wRenderTypeCard();
+  }
+}
+
+function wRenderCard(){
+  if(wrongQuizIdx>=wrongQuizWords.length){wShowDone();return;}
+  const w=wrongQuizWords[wrongQuizIdx], pct=Math.round((wrongQuizIdx/wrongQuizWords.length)*100);
+  document.getElementById('wProgTxt').textContent=(wrongQuizIdx+1)+' / '+wrongQuizWords.length;
+  document.getElementById('wProgPct').textContent=pct+'%';
+  document.getElementById('wProgFill').style.width=pct+'%';
+  document.getElementById('wCWord').textContent=w.word;
+  document.getElementById('wCMean').textContent=w.meaning;
+  document.getElementById('wCMean').style.display='none';
+  document.getElementById('wCSrc').textContent=w.source?'📌 '+w.source:'';
+  document.getElementById('wBtnShow').style.display='block';
+  document.getElementById('wBtnJudge').style.display='none';
+}
+function wShowMean(){
+  document.getElementById('wCMean').style.display='block';
+  document.getElementById('wBtnShow').style.display='none';
+  document.getElementById('wBtnJudge').style.display='block';
+}
+async function wJudge(ok){
+  const w=wrongQuizWords[wrongQuizIdx];
+  if(ok){wrongQuizOk++;}else{wrongQuizBad++;await recordWrong(w);}
+  wrongQuizIdx++; wRenderCard();
+}
+
+function wRenderTypeCard(){
+  if(wrongQuizIdx>=wrongQuizWords.length){wShowDone();return;}
+  const w=wrongQuizWords[wrongQuizIdx], pct=Math.round((wrongQuizIdx/wrongQuizWords.length)*100);
+  document.getElementById('wtProgTxt').textContent=(wrongQuizIdx+1)+' / '+wrongQuizWords.length;
+  document.getElementById('wtProgPct').textContent=pct+'%';
+  document.getElementById('wtProgFill').style.width=pct+'%';
+  document.getElementById('wtMean').textContent=w.meaning;
+  document.getElementById('wtSrc').textContent=w.source?'📌 '+w.source:'';
+  document.getElementById('wrongTypeInput').value='';
+  document.getElementById('wrongTypeFeedback').textContent='';
+  setTimeout(()=>document.getElementById('wrongTypeInput').focus(),100);
+}
+function wCheckType(){
+  const w=wrongQuizWords[wrongQuizIdx];
+  const ans=document.getElementById('wrongTypeInput').value.trim().toLowerCase();
+  const correct=w.word.toLowerCase();
+  const fb=document.getElementById('wrongTypeFeedback');
+  if(ans===correct){
+    wrongQuizOk++;
+    fb.textContent='🎉 정답이에요!'; fb.style.color='var(--burg)';
+    setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},900);
+  } else {
+    wrongQuizBad++;
+    fb.textContent=`❌ 정답: ${w.word}`; fb.style.color='#d94f4f';
+    recordWrong(w);
+    setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},1400);
+  }
+}
+function wSkipType(){
+  const w=wrongQuizWords[wrongQuizIdx];
+  const fb=document.getElementById('wrongTypeFeedback');
+  wrongQuizBad++;
+  fb.textContent=`💡 정답: ${w.word}`; fb.style.color='var(--soft)';
+  recordWrong(w);
+  setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},1400);
+}
+function wShowDone(){
+  document.getElementById('wrongQuizArea').style.display='none';
+  document.getElementById('wrongTypeArea').style.display='none';
+  document.getElementById('wrongQuizDone').style.display='block';
+  document.getElementById('wDoneSummary').textContent=
+    `총 ${wrongQuizWords.length}개 | 맞은 것 ${wrongQuizOk}개 | 틀린 것 ${wrongQuizBad}개`;
+}
+function resetWrongQuiz(){
+  document.getElementById('wrongQuizArea').style.display='none';
+  document.getElementById('wrongTypeArea').style.display='none';
+  document.getElementById('wrongQuizDone').style.display='none';
+  document.getElementById('wrongContainer').style.display='block';
+  document.getElementById('wrongSummary').style.display='block';
+  document.getElementById('wrongQuizSetup').style.display='none';
+}
 </script>
 </body>
 </html>
