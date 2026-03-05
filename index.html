@@ -846,17 +846,20 @@ function checkType(){
   const ans=document.getElementById('typeInput').value.trim().toLowerCase();
   const correct=w.word.toLowerCase();
   const fb=document.getElementById('typeFeedback');
-  if(ans===correct){
-    quizOk++;
-    fb.textContent='🎉 정답이에요!';
-    fb.style.color='var(--burg)';
-    setTimeout(()=>{quizIdx++;renderTypeCard();},900);
+if(ans===correct){
+    wrongQuizOk++;
+    removeFromWrong(w);
+    fb.textContent='🎉 정답이에요!'; fb.style.color='var(--burg)';
+    setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},900);
   } else {
-    quizBad++;
-    fb.textContent=`❌ 정답: ${w.word}`;
-    fb.style.color='#d94f4f';
-    recordWrong(w);
-    setTimeout(()=>{quizIdx++;renderTypeCard();},1400);
+    wrongQuizBad++;
+    fb.textContent=`❌ 정답: ${w.word}`; fb.style.color='#d94f4f';
+    const ex=wrongWords.find(x=>x.id===w.id);
+    if(ex){
+      await db.from('wrong_answers').update({wrong_count:ex.wrong_count+1, last_wrong_at:new Date().toISOString()}).eq('id',ex.id);
+      ex.wrong_count++;
+    }
+    setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},1400);
   }
 }
 function skipType(){
@@ -1002,9 +1005,19 @@ function wShowMean(){
 }
 async function wJudge(ok){
   const w=wrongQuizWords[wrongQuizIdx];
-  if(ok){wrongQuizOk++;await removeFromWrong(w);}
-  else{wrongQuizBad++;await recordWrong(w);}
-  wrongQuizIdx++; wRenderCard();
+  wrongQuizIdx++;
+  if(ok){
+    wrongQuizOk++;
+    await removeFromWrong(w);
+  } else {
+    wrongQuizBad++;
+    const ex=wrongWords.find(x=>x.id===w.id);
+    if(ex){
+      await db.from('wrong_answers').update({wrong_count:ex.wrong_count+1, last_wrong_at:new Date().toISOString()}).eq('id',ex.id);
+      ex.wrong_count++;
+    }
+  }
+  wRenderCard();
 }
 
 function wRenderTypeCard(){
@@ -1059,6 +1072,11 @@ function resetWrongQuiz(){
   document.getElementById('wrongSummary').style.display='block';
   document.getElementById('wrongQuizSetup').style.display='none';
 }
+async function removeFromWrong(w){
+  await db.from('wrong_answers').delete().eq('id', w.id);
+  wrongWords = wrongWords.filter(x => x.id !== w.id);
+  renderWrong();
+}  
 </script>
 </body>
 </html>
