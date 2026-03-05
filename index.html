@@ -1002,7 +1002,8 @@ function wShowMean(){
 }
 async function wJudge(ok){
   const w=wrongQuizWords[wrongQuizIdx];
-  if(ok){wrongQuizOk++;}else{wrongQuizBad++;await recordWrong(w);}
+  if(ok){wrongQuizOk++;await removeFromWrong(w);}
+  else{wrongQuizBad++;await recordWrong(w);}
   wrongQuizIdx++; wRenderCard();
 }
 
@@ -1025,6 +1026,7 @@ function wCheckType(){
   const fb=document.getElementById('wrongTypeFeedback');
   if(ans===correct){
     wrongQuizOk++;
+    removeFromWrong(w);
     fb.textContent='🎉 정답이에요!'; fb.style.color='var(--burg)';
     setTimeout(()=>{wrongQuizIdx++;wRenderTypeCard();},900);
   } else {
